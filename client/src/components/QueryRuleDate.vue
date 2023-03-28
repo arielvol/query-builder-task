@@ -64,8 +64,6 @@ function limitDateOptions(d) {
                 </q-icon>
             </template>
         </q-input>
-        <!-- <q-input v-model="selectedNumberValue" type="number" label="Value" class="q-ml-md"
-                @update:model-value="onInputUpdated" /> -->
     </div>
 </template>
 
