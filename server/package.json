@@ -1,0 +1,18 @@
+{
+    "dependencies": {
+        "body-parser": "^1.20.2",
+        "cors": "2.8.4",
+        "express": "4.16.3",
+        "nodemon": "1.18.3",
+        "pg": "8.0.3",
+        "redis": "2.8.0",
+        "sequelize": "^6.29.3"
+    },
+    "scripts": {
+        "dev": "nodemon",
+        "start": "node index.js"
+    },
+    "devDependencies": {
+        "@faker-js/faker": "^7.6.0"
+    }
+}
