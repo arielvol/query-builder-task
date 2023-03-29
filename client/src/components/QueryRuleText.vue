@@ -124,7 +124,7 @@ function onSelectedValuesUpdated() {
 
 <style scoped>
 .text-operator {
-    width: 130px;
+    width: 115px;
 }
 
 .column-values {

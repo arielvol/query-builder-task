@@ -1,20 +1,22 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import QueryService from "../services/QueryService"
-import QueryRule from "../components/QueryRule.vue"
-import { v4 as uuid } from 'uuid'
+import QueryGroup from "../components/QueryGroup.vue"
+
 
 let tableNames = ref([]);
 let queries = ref([]);
-let columnsObjList = [];
+let columnsList = ref([]);
 let selectedTableName = ref(null);
 let queryName = ref("");
-let rules = ref([]);
 let jsonData = ref([]);
+const depth = 1;
+const componentKey = ref(0);
+
 
 let query = {
-    rules: [],
-    groups: [],
+    data: null,
+    tableName: "",
 };
 
 onMounted(async () => {
@@ -27,37 +29,15 @@ onMounted(async () => {
 
 
 watch(selectedTableName, async () => {
-    resetAll();
+    componentKey.value += 1
     if (tableNames.value) {
         const response = await QueryService.getColumnNamesByTableName(selectedTableName.value);
-        columnsObjList = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
-        console.log(columnsObjList);
+        columnsList.value = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
+        console.log(columnsList);
         query.tableName = selectedTableName.value;
     }
 })
 
-function resetAll() {
-    columnsObjList = null;
-    rules.value = [];
-    query = {
-        rules: [],
-        groups: [],
-    };
-}
-
-function onAddRuleClick() {
-    const newId = uuid().toString();
-    const newRule = {
-        combineOperator: "AND",
-        ruleId: newId
-    }
-    rules.value.push(newRule);
-    query.rules.push(newRule);
-}
-
-function onAddGroupClick() {
-    console.log("Group Created");
-}
 function mapDataType(dataType) {
     if (dataType.startsWith("character")) {
         return "STRING";
@@ -69,15 +49,15 @@ function mapDataType(dataType) {
     return "UNKNOWN";
 }
 
-function onRuleUpdated(ruleData) {
-    let foundRule = query.rules.find(rule => rule.ruleId === ruleData.ruleId);
-    Object.assign(foundRule, ruleData);
-}
-
 async function onExecuteQueryClicked() {
     const response = await QueryService.executeQuery(query);
     jsonData.value = JSON.stringify(response.data[0]);
 }
+
+function onUpdated(data) {
+    query.data = data;
+}
+
 
 </script>
 
@@ -85,19 +65,7 @@ async function onExecuteQueryClicked() {
     <q-page padding>
         <q-input outlined v-model="queryName" type="text" label="Query Name:" class="q-mb-md" />
         <q-select outlined v-model="selectedTableName" :options="tableNames" label="Table Names:" class="q-mb-md" />
-        <q-card class="my-card" v-if="selectedTableName">
-            <q-card-section>
-                <div class="q-pa-md q-gutter-sm">
-                    <q-btn outline color="primary" label="Add Rule" icon="add" @click="onAddRuleClick" />
-                    <q-btn outline color="primary" label="Add Group" icon="add" @click="onAddGroupClick" />
-                </div>
-                <div class="rules-and-groups">
-                    <QueryRule v-for="(rule, index) in rules" :index="index" :column-list="columnsObjList"
-                        :selected-table="selectedTableName" option-display="column_name" :key="rule.ruleId"
-                        :rule-id="rule.ruleId" class="rule" @rule-updated="onRuleUpdated"></QueryRule>
-                </div>
-            </q-card-section>
-        </q-card>
+        <QueryGroup v-if="selectedTableName"  :key="componentKey" :depth="depth" :selected-table="selectedTableName" :column-list="columnsList" @updated="onUpdated"/>
         <q-separator />
         <div class="footer-section">
             <q-btn color="primary" label="Execute Query" class="q-mt-md" @click="onExecuteQueryClicked" />

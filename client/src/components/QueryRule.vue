@@ -9,7 +9,7 @@ let selectedCombineRuleOperator = ref("AND");
 let selectedColumn = ref(null);
 const componentKey = ref(0);
 
-const emit = defineEmits(['rule-updated'])
+const emit = defineEmits(['updated', 'removed']);
 
 const props = defineProps({
     index: {
@@ -24,14 +24,15 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
-    ruleId: {
+    id: {
         type: String,
         default: "",
     }
 })
 
 let ruleData = {
-    ruleId: props.ruleId
+    id: props.id,
+    type: "RULE",
 };
 let componentType = null;
 
@@ -54,13 +55,13 @@ watch(selectedColumn, async () => {
 
 function onRuleOperatorUpdated() {
     ruleData.combineOperator = selectedCombineRuleOperator.value;
-    emit("rule-updated", ruleData);
+    emit("updated", ruleData);
 }
 
 function onSelectedColumnUpdated() {
     ruleData.field = selectedColumn.value.name;
     componentKey.value += 1; //TODO: This is a hack to "delete the data when changing colum selection, "defineExpose" didn't work
-    emit("rule-updated", ruleData);
+    emit("updated", ruleData);
 }
 
 function onRuleUpdated(updatedRule) {
@@ -68,7 +69,11 @@ function onRuleUpdated(updatedRule) {
         ...ruleData,
         ...updatedRule
     };
-    emit("rule-updated", ruleData);
+    emit("updated", ruleData);
+}
+
+function onRemoveClicked() {
+    emit("removed", ruleData);
 }
 
 </script>
@@ -83,6 +88,7 @@ function onRuleUpdated(updatedRule) {
             class="rule-column-name q-ml-md" @update:model-value="onSelectedColumnUpdated" />
         <component :key="componentKey" :is="componentType" :selected-table="selectedTable" :selected-column="selectedColumn"
             @rule-updated="onRuleUpdated"></component>
+        <q-btn flat><q-icon name="delete_outline" color="grey" @click="onRemoveClicked"/></q-btn>
     </div>
 </template>
 
