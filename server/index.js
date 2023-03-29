@@ -84,11 +84,11 @@ const Query = sequelize.define('query', {
     primaryKey: true,
     autoIncrement: true
   },
-  queryName: {
+  name: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
   },
-  jsonData: {
+  body: {
     type: DataTypes.JSON,
     allowNull: false
   }
@@ -226,10 +226,10 @@ app.get("/api/queries/:id", async (req, res) => {
 
 // POST a new query
 app.post("/api/queries", async (req, res) => {
-  const { queryName, jsonData } = req.body;
+  const { name, body } = req.body;
   try {
-    const query = await Query.create({ queryName, jsonData });
-    res.json(query);
+    const newQuery = await Query.create({ name, body });
+    res.json(newQuery);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -239,12 +239,12 @@ app.post("/api/queries", async (req, res) => {
 // PUT an existing query by ID
 app.put("/api/queries/:id", async (req, res) => {
   const { id } = req.params;
-  const { queryName, jsonData } = req.body;
+  const { name, body } = req.body;
   try {
     const query = await Query.findByPk(id);
     if (query) {
-      query.queryName = queryName;
-      query.jsonData = jsonData;
+      query.name = name;
+      query.body = body;
       await query.save();
       res.json(query);
     } else {

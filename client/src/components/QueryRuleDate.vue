@@ -1,10 +1,25 @@
 <script setup>
 
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { date } from 'quasar'
 
 let selectedDateOperator = ref("");
 let selectedDateValue = ref("");
+
+const props = defineProps({
+    data: {
+        type: Object,
+        default: null,
+    }
+})
+
+onMounted(() => {
+    if (props.data) {
+        selectedDateOperator.value = props.data.operator;
+        selectedDateValue.value = props.data.value;
+    }
+});
+
 
 let ruleDateData = {
     ruleType: "DATE",

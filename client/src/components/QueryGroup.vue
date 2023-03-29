@@ -1,5 +1,5 @@
 <script setup>
-import { ref, shallowRef, computed } from "vue";
+import { ref, onMounted } from "vue";
 import QueryRule from "./QueryRule.vue";
 import QueryGroup from "./QueryGroup.vue";
 import { v4 as uuid } from "uuid";
@@ -8,7 +8,6 @@ let items = ref([]);
 
 let groupData = {
     combineOperator: "AND",
-    id: props.id ?? uuid().toString(),
     type: "GROUP",
     items: [],
 };
@@ -31,9 +30,32 @@ const props = defineProps({
     id: {
         type: String,
         default: "",
-    }
+    },
+    data: {
+        type: Object,
+        default: null,
+    },
 });
 
+onMounted(() => {
+    if (props.id) {
+        groupData.id = props.id;
+    } else {
+        groupData.id = uuid().toString();
+    }
+
+    //we are necessarily in "load mode"
+    if (props.data) {
+        groupData = {...props.data};
+        items.value = props.data.items;
+        //TODO: fix later - This is a hack to differentiate between "load mode" and "creation mode".
+        // items.value.forEach(item => {
+        //     item.data = item;
+        // });
+    }
+
+
+})
 
 function getComponentType(type) {
     let componentType = null;
@@ -111,11 +133,8 @@ function onRemoveClicked() {
             </div>
             <div>
                 <component v-for="(item, index) in items" :index="index" :key="item.id" :is="getComponentType(item.type)"
-                    :column-list="columnList" :selected-table="selectedTable" :id="item.id" @updated="onUpdated"
+                    :data="item" :column-list="columnList" :selected-table="selectedTable" :id="item.id" @updated="onUpdated"
                     @removed="onRemoved" :depth="depth + 1" class="q-mt-md q-mb-md" />
-                <!-- <QueryRule v-for="(rule, index) in rules" :index="index" :column-list="columnsObjList"
-                                        :selected-table="selectedTableName":key="rule.ruleId"
-                                        :rule-id="rule.ruleId" class="rule" @rule-updated="onRuleUpdated"></QueryRule> -->
             </div>
         </q-card-section>
     </q-card>

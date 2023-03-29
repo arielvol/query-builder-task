@@ -1,6 +1,6 @@
 <script setup>
 
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import QueryService from "../services/QueryService"
 
 let selectedTextOperator = ref("");
@@ -23,7 +23,27 @@ const props = defineProps({
         type: Object,
         default: () => { },
     },
+    data: {
+        type: Object,
+        default: null,
+    }
 })
+
+onMounted(() => {
+    if (props.data) {
+        selectedTextOperator.value = props.data.operator;
+        if (isInput.value) {
+            selectedColumnText.value = props.data.value
+        } else {
+            selectedColumnValues.value = props.data.value;
+        }
+    }
+});
+
+
+
+
+
 
 const textOperatorOptions = {
     eq: {

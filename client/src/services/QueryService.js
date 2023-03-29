@@ -13,7 +13,7 @@ export default {
   getAllTablesNames() {
     return apiClient.get('/tables');
   },
-  getColumnNamesByTableName(tableName) {
+  getColumnNames(tableName) {
     return apiClient.post('/tables/columns', {tableName})
   },
 
@@ -21,11 +21,24 @@ export default {
     return apiClient.post('/tables/columns/data', {tableName, columnName})
   },
 
-  getAllQueries(){
+  getQueries(){
     return apiClient.get('/queries');
   },
 
   executeQuery(query) {
     return apiClient.post('/queries/run', {query})
+  },
+
+  createQuery(query) {
+    return apiClient.post('/queries', { name: query.name, body: query.body });
+  },
+
+  updateQuery(query) {
+    const { id, ...rest } = query;
+    return apiClient.put('/queries/' +  id, rest);
+  },
+
+  deleteQuery(queryId) {
+    return apiClient.delete('/queries/' +  queryId);
   }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import QueryRuleText from "../components/QueryRuleText.vue";
 import QueryRuleNumber from "../components/QueryRuleNumber.vue";
 import QueryRuleDate from "../components/QueryRuleDate.vue";
@@ -27,6 +27,23 @@ const props = defineProps({
     id: {
         type: String,
         default: "",
+    },
+    data: {
+        type: Object,
+        default: null,
+    }
+})
+
+onMounted(() => {
+    if (props.data) {
+        selectedCombineRuleOperator.value = props.data.combineOperator;
+        ////TODO: fix later - this is a hack (saving the datatype in the JSON) since for some reason I wasn't able to get the item from
+        // the columnList list that is in the prop. The columnList is still not populated on the "onMounted" event (race condition ?).
+        selectedColumn.value = {
+            name: props.data.field,
+            dataType: props.data.fieldDataType,
+        };
+        ruleData = {...props.data}
     }
 })
 
@@ -37,7 +54,8 @@ let ruleData = {
 let componentType = null;
 
 watch(selectedColumn, async () => {
-    switch (selectedColumn.value.dataType) {
+    if (selectedColumn.value.dataType){
+        switch (selectedColumn.value.dataType) {
         case "STRING":
             componentType = QueryRuleText;
             break;
@@ -51,6 +69,7 @@ watch(selectedColumn, async () => {
             componentType = null;
             break;
     }
+    }
 })
 
 function onRuleOperatorUpdated() {
@@ -60,6 +79,7 @@ function onRuleOperatorUpdated() {
 
 function onSelectedColumnUpdated() {
     ruleData.field = selectedColumn.value.name;
+    ruleData.fieldDataType = selectedColumn.value.dataType
     componentKey.value += 1; //TODO: This is a hack to "delete the data when changing colum selection, "defineExpose" didn't work
     emit("updated", ruleData);
 }
@@ -86,7 +106,7 @@ function onRemoveClicked() {
         <label v-else class="first-rule-label"><strong>ARE: </strong></label>
         <q-select outlined v-model="selectedColumn" :options="columnList" option-label="name" label="Column Name"
             class="rule-column-name q-ml-md" @update:model-value="onSelectedColumnUpdated" />
-        <component :key="componentKey" :is="componentType" :selected-table="selectedTable" :selected-column="selectedColumn"
+        <component :data="data" :key="componentKey" :is="componentType" :selected-table="selectedTable" :selected-column="selectedColumn"
             @rule-updated="onRuleUpdated"></component>
         <q-btn flat><q-icon name="delete_outline" color="grey" @click="onRemoveClicked"/></q-btn>
     </div>

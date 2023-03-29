@@ -1,9 +1,23 @@
 <script setup>
 
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 
 let selectedNumberOperator = ref("");
 let selectedNumberValue = ref("");
+
+const props = defineProps({
+    data: {
+        type: Object,
+        default: null,
+    }
+})
+
+onMounted(() => {
+    if (props.data) {
+        selectedNumberOperator.value = props.data.operator;
+        selectedNumberValue.value = props.data.value;
+    }
+});
 
 let ruleNumberData = {
     ruleType: "NUMBER",
