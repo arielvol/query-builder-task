@@ -10,7 +10,7 @@ let groupData = {
     combineOperator: "AND",
     id: props.id ?? uuid().toString(),
     type: "GROUP",
-    groups: [],
+    items: [],
 };
 
 const emit = defineEmits(['updated', 'query-updated', 'removed']);
@@ -56,7 +56,7 @@ function onAddRuleClick() {
         type: "RULE",
     };
     items.value.push(newRule);
-    groupData.groups.push(newRule);
+    groupData.items.push(newRule);
     emit("updated", groupData);
 }
 
@@ -66,21 +66,21 @@ function onAddGroupClick() {
         combineOperator: "AND",
         id: newId,
         type: "GROUP",
-        groups: [],
+        items: [],
     };
     items.value.push(newGroup);
-    groupData.groups.push(newGroup);
+    groupData.items.push(newGroup);
     emit("updated", groupData);
 }
 
 function onUpdated(data) {
 
     if (data.type === "RULE") {
-        let foundItem = groupData.groups.find(item => item.id === data.id);
+        let foundItem = groupData.items.find(item => item.id === data.id);
         Object.assign(foundItem, data);
     } else {
-        groupData.groups = groupData.groups.filter(item => item.id !== data.id);
-        groupData.groups.push(data);
+        groupData.items = groupData.items.filter(item => item.id !== data.id);
+        groupData.items.push(data);
     }
 
     emit("updated", groupData);
@@ -88,7 +88,7 @@ function onUpdated(data) {
 
 function onRemoved(data) {
     items.value = items.value.filter(item => item.id !== data.id);
-    groupData.groups = groupData.groups.filter(item => item.id !== data.id);
+    groupData.items = groupData.items.filter(item => item.id !== data.id);
 
     emit("updated", groupData);
 }

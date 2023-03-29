@@ -78,7 +78,6 @@ const textOptions = Object.values(textOperatorOptions);
 watch(selectedTextOperator, async () => {
     if (!isInput.value) {
         const response = await QueryService.getColumnData(props.selectedTable, props.selectedColumn.name);
-        console.log(response);
         columnData.value = response.data;
     }
 })

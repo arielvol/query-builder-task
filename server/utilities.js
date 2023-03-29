@@ -1,9 +1,18 @@
 const { faker } = require("@faker-js/faker");
 
 function buildQuery(queryData) {
-  const { tableName, rules } = queryData;
+  const { tableName, data } = queryData;
 
   let query = `SELECT * from "${tableName}" WHERE `;
+
+  const groupQuery = parseGroup(data)
+  query += groupQuery;
+
+  return query;
+}
+
+function parseRules(rules) {
+  let query = "";
 
   const conditions = [];
   rules.forEach((rule, index) => {
@@ -67,6 +76,34 @@ function buildQuery(queryData) {
   const joinedConditions = conditions.join("");
   query += joinedConditions;
   return query;
+}
+
+function parseGroup(group) {
+    let query = "( ";
+
+    const rules = group.items.filter((item) => item.type === "RULE");
+    const groups = group.items.filter((item) => item.type === "GROUP");
+
+    let rulesQuery = "";
+    if (rules && rules.length > 0) {
+        rulesQuery = parseRules(rules);
+    }
+    if (rulesQuery && groups && groups.length > 0) {
+        rulesQuery += " AND ";
+    }
+    query += rulesQuery;
+
+
+    for (const [index, group] of groups.entries()) {
+        query += parseGroup(group);
+        if (groups.length > 1 && index != groups.length - 1) {
+            query += ' AND ';
+        }
+    }
+
+    query += ")";
+
+    return query;
 }
 
 async function generateEmployeeDummyData(count) {

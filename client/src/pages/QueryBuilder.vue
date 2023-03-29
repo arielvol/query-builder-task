@@ -33,7 +33,6 @@ watch(selectedTableName, async () => {
     if (tableNames.value) {
         const response = await QueryService.getColumnNamesByTableName(selectedTableName.value);
         columnsList.value = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
-        console.log(columnsList);
         query.tableName = selectedTableName.value;
     }
 })
@@ -54,8 +53,8 @@ async function onExecuteQueryClicked() {
     jsonData.value = JSON.stringify(response.data[0]);
 }
 
-function onUpdated(data) {
-    query.data = data;
+function onUpdated(groupData) {
+    query.data = groupData;
 }
 
 
