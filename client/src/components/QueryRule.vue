@@ -1,8 +1,9 @@
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, toRaw } from "vue";
 import QueryRuleText from "../components/QueryRuleText.vue";
 import QueryRuleNumber from "../components/QueryRuleNumber.vue";
 import QueryRuleDate from "../components/QueryRuleDate.vue";
+import deepCopy from "../utilities.js"
 
 const ruleCombineOperatorOptions = ["AND", "OR"];
 let selectedCombineRuleOperator = ref("AND");
@@ -35,7 +36,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    if (props.data) {
+    if (props.data && props.data.isQueryLoad) {
         selectedCombineRuleOperator.value = props.data.combineOperator;
         ////TODO: fix later - this is a hack (saving the datatype in the JSON) since for some reason I wasn't able to get the item from
         // the columnList list that is in the prop. The columnList is still not populated on the "onMounted" event (race condition ?).
@@ -43,7 +44,7 @@ onMounted(() => {
             name: props.data.field,
             dataType: props.data.fieldDataType,
         };
-        ruleData = {...props.data}
+        ruleData = deepCopy(toRaw(props.data))
     }
 })
 

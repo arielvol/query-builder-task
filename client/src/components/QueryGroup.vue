@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, toRaw } from "vue";
 import QueryRule from "./QueryRule.vue";
 import QueryGroup from "./QueryGroup.vue";
 import { v4 as uuid } from "uuid";
+import deepCopy from "../utilities.js"
 
 let items = ref([]);
 
@@ -45,16 +46,11 @@ onMounted(() => {
     }
 
     //we are necessarily in "load mode"
-    if (props.data) {
-        groupData = {...props.data};
-        items.value = props.data.items;
-        //TODO: fix later - This is a hack to differentiate between "load mode" and "creation mode".
-        // items.value.forEach(item => {
-        //     item.data = item;
-        // });
+    if (props.data && props.data.isQueryLoad) {
+        groupData = deepCopy(toRaw(props.data));
+        items.value = deepCopy(toRaw(props.data.items));
+        items.value.forEach(item => item.isQueryLoad = true);
     }
-
-
 })
 
 function getComponentType(type) {

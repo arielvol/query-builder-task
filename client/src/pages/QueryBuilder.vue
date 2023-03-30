@@ -2,12 +2,15 @@
 import { ref, onMounted, watch, toRaw } from "vue";
 import QueryService from "../services/QueryService"
 import QueryGroup from "../components/QueryGroup.vue"
+import deepCopy from "../utilities.js"
 
 let groupData = ref(null);
 let tableNames = ref([]);
 let columnsList = ref([]);
 let selectedTableName = ref(null);
 let queryExecutionResultJson = ref([]);
+let queryExecutionResultsNumber = ref(0);
+
 const depth = 1;
 const componentKey = ref(0);
 
@@ -32,7 +35,7 @@ onMounted(async () => {
 
 watch(selectedTableName, async () => {
     componentKey.value += 1
-    if (tableNames.value) {
+    if (selectedTableName.value) {
         const response = await QueryService.getColumnNames(selectedTableName.value);
         columnsList.value = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
         query.tableName = selectedTableName.value;
@@ -45,20 +48,12 @@ watch(selectedQuery, () => {
     }
 });
 
-function mapDataType(dataType) {
-    if (dataType.startsWith("character")) {
-        return "STRING";
-    } else if (dataType.startsWith("integer")) {
-        return "NUMBER";
-    } else if (dataType.startsWith("timestamp") || dataType.startsWith("date")) {
-        return "DATE";
-    }
-    return "UNKNOWN";
-}
+
 
 async function onExecuteQueryClicked() {
     const response = await QueryService.executeQuery(query);
     queryExecutionResultJson.value = JSON.stringify(response.data[0]);
+    queryExecutionResultsNumber.value = response.data[1].rowCount;
 }
 
 function onUpdated(groupData) {
@@ -87,34 +82,66 @@ function loadSelectedQuery() {
     selectedTableName.value = selectedQuery.value.body.tableName;
     queryName.value = selectedQuery.value.name
     groupData.value = selectedQuery.value.body.data;
-    query.data = {...toRaw(groupData.value)};
+    groupData.value.isQueryLoad = true;
+    query.data = deepCopy(toRaw(groupData.value));
     isShowQuerySection.value = true;
 }
 
 function onSaveQueryClicked() {
     saveQuery();
+    queryExecutionResultJson.value = null;
+    queryExecutionResultsNumber.value = 0;
+}
+
+
+function mapDataType(dataType) {
+    if (dataType.startsWith("character")) {
+        return "STRING";
+    } else if (dataType.startsWith("integer")) {
+        return "NUMBER";
+    } else if (dataType.startsWith("timestamp") || dataType.startsWith("date")) {
+        return "DATE";
+    }
+    return "UNKNOWN";
 }
 
 async function saveQuery() {
     //Update
     if (selectedQuery.value) {
-        const response = await QueryService.updateQuery(selectedQuery.value);
-        const updatedQuery = response.data;
-        const foundQuery = queries.value.find(query => query.id == updatedQuery.id);
-        if (foundQuery) {
-            foundQuery = updatedQuery;
-        }
+        updateSelectedQuery();
     } else { //New
-        try {
-            const newQuery = {
-                name: queryName.value,
-                body: query
-            }
-            const response = await QueryService.createQuery(newQuery);
-            queries.value.push(response.data);
-        } catch (error) {
-            console.log(error);
+        createNewQuery();
+    }
+}
+
+async function updateSelectedQuery() {
+    const updatedQueryObj = {
+        name: queryName.value,
+        body: query,
+        id: selectedQuery.value.id
+    }
+    try {
+        const response = await QueryService.updateQuery(updatedQueryObj);
+        const updatedQuery = response.data;
+        let foundQuery = queries.value.find(query => query.id == updatedQuery.id);
+        if (foundQuery) {
+            foundQuery = { ...updatedQuery }
         }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function createNewQuery() {
+    try {
+        const newQueryObj = {
+            name: queryName.value,
+            body: query
+        }
+        const response = await QueryService.createQuery(newQueryObj);
+        queries.value.push(response.data);
+    } catch (error) {
+        console.error(error);
     }
 }
 
@@ -128,11 +155,18 @@ async function onYesClicked() {
         console.log(error);
     }
 }
+
 function onSelectedQueryUpdated() {
+    clearQueryData();
+}
+
+function clearQueryData() {
     isShowQuerySection.value = false;
     componentKey.value += 1
     selectedTableName.value = null;
+    queryExecutionResultJson.value = null;
 }
+
 </script>
 
 <template>
@@ -170,13 +204,14 @@ function onSelectedQueryUpdated() {
             <q-separator />
             <div class="lower-section q-mt-md">
                 <q-btn color="red" label="Execute Query" class="q-ml-md" @click="onExecuteQueryClicked" />
-                <q-btn outline color="primary" label="Save Query" @click="onSaveQueryClicked" />
+                <q-btn color="green" label="Save Query" @click="onSaveQueryClicked" />
             </div>
             <div>
-                <h4>Query Result:</h4>
-                <q-input autogrow v-model="queryExecutionResultJson" type="textarea" />
+                <div v-if="queryExecutionResultJson">
+                    <h5>Found {{ queryExecutionResultsNumber }} Results:</h5>
+                    <q-input autogrow v-model="queryExecutionResultJson" type="textarea" />
+                </div>
             </div>
-
         </div>
 
     </q-page>

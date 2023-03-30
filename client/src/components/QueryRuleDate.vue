@@ -14,7 +14,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    if (props.data) {
+    if (props.data && props.data.isQueryLoad) {
         selectedDateOperator.value = props.data.operator;
         selectedDateValue.value = props.data.value;
     }
