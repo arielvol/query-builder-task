@@ -6,6 +6,9 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/QueryBuilder.vue') }
     ]
+    // children: [
+    //   { path: '', component: () => import('pages/RegisterAndLogin.vue') }
+    // ]
   },
 
   // Always leave this as last one,

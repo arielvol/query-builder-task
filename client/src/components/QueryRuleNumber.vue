@@ -14,8 +14,12 @@ const props = defineProps({
 
 onMounted(() => {
     if (props.data) {
-        selectedNumberOperator.value = props.data.operator;
-        selectedNumberValue.value = props.data.value;
+        if (props.data.operator) {
+            selectedNumberOperator.value = props.data.operator;
+        }
+        if (props.data.value) {
+            selectedNumberValue.value = props.data.value;
+        }
     }
 });
 

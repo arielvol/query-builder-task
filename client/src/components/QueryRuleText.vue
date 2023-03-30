@@ -31,8 +31,10 @@ const props = defineProps({
 
 onMounted(() => {
     if (props.data) {
-        selectedTextOperator.value = props.data.operator;
-        if (isInput.value) {
+        if (props.data.operator) {
+            selectedTextOperator.value = props.data.operator;
+        }
+        if (props.data.value && isInput.value) {
             selectedColumnText.value = props.data.value
         } else {
             selectedColumnValues.value = props.data.value;

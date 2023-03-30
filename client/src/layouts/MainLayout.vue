@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title>
-          Query Builder
+          Ariels Query Builder
         </q-toolbar-title>
       </q-toolbar>
     </q-header>

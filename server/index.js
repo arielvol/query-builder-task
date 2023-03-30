@@ -1,278 +1,61 @@
 const express = require("express");
 const app = express();
+const sequelize = require("./config/database");
 const bodyParser = require("body-parser");
-const { Sequelize, DataTypes } = require("sequelize");
+const { populateEmployeeTable } = require('./utilities');
+const bcrypt = require('bcrypt')
+const Employee = require('./models/Employee');
+
 const cors = require("cors");
-const { buildQuery, populateEmployeeTable} = require('./utilities');
 
 
-// Create a new Sequelize instance with your PostgreSQL connection details
-// Docker Mode
-// const sequelize = new Sequelize({
-//   dialect: "postgres",
-//   host: process.env.PGHOST,
-//   database: process.env.PGDATABASE,
-//   username: process.env.PGUSER,
-//   password: process.env.PGPASSWORD,
-//   port: process.env.PGPORT,
-// });
-
-//Local mode
-const sequelize = new Sequelize({
-  dialect: "postgres",
-  host: "localhost",
-  database: "postgres",
-  username: "postgres",
-  password: "admin",
-  port: 5432,
-});
-
-// Define the Employee model
-const Employee = sequelize.define("Employees", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  first_name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  last_name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  id_number: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  address: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  cell_phone: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  home_phone: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  sex: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  birthday: {
-    type: DataTypes.DATEONLY,
-    allowNull: false,
-  },
-  age: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-});
-
-const Query = sequelize.define('query', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  body: {
-    type: DataTypes.JSON,
-    allowNull: false
-  }
-});
-
-// Configure the body-parser middleware
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get("/api/tables", async (req, res) => {
-  try {
-    const query = `
-    SELECT tablename
-    FROM pg_catalog.pg_tables
-    WHERE schemaname = 'public'
-  `;
-    const result = await sequelize.query(query, {
-      type: Sequelize.QueryTypes.SELECT,
-    });
-    const tableNames = result.map((row) => row.tablename);
-    res.send(tableNames);
-  } catch (error) {
-    console.error(error);
-    res.sendStatus(500);
-  }
-});
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body
 
-app.post("/api/tables/columns", async (req, res) => {
-  const { tableName } = req.body;
+  // Hash and salt the user's password
+  const saltRounds = 10
+  const hashedPassword = await bcrypt.hash(password, saltRounds)
 
-  if (!tableName) {
-    res.status(400).json({ error: "Table name is required" });
-    return;
+  // Insert the user's information into the users table
+  await User.create({ username, password: hashedPassword })
+
+  res.status(200).send('User created')
+})
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body
+
+  // Retrieve the user's information from the users table
+  const user = await User.findOne({ where: { username } })
+
+  // If the user doesn't exist, return an error
+  if (!user) {
+    return res.status(401).send('Invalid username or password')
   }
 
-  try {
-    const tableColumns = await sequelize.query(
-      `
-      SELECT column_name, data_type
-      FROM information_schema.columns
-      WHERE table_name = '${tableName}'
-    `,
-      {
-        type: Sequelize.QueryTypes.SELECT,
-      }
-    );
+  // Hash and salt the provided password and compare it to the hash stored in the database
+  const match = await bcrypt.compare(password, user.password)
 
-    res.json(tableColumns);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while retrieving the column names" });
-  }
-});
-
-app.post("/api/tables/columns/data", async (req, res) => {
-  const { tableName, columnName } = req.body;
-
-  if (!tableName || !columnName) {
-    res
-      .status(400)
-      .json({ error: "Table name and Column name are both required" });
-    return;
+  // If the passwords don't match, return an error
+  if (!match) {
+    return res.status(401).send('Invalid username or password')
   }
 
-  try {
-    const modelClass = sequelize.models[tableName];
-    const columns = Object.keys(modelClass.rawAttributes);
+  // Generate a token to keep the user logged in
+  const token = jwt.sign({ id: user.id }, 'secret-key', { expiresIn: '1h' })
 
-    if (!columns.includes(columnName)) {
-      res.status(400).json({ error: `Invalid column name: ${columnName}` });
-      return;
-    }
+  res.status(200).json({ token })
+})
 
-    const rows = await modelClass.findAll({
-      attributes: [columnName],
-    });
+const userRoutes = require('./routes/queryRoutes');
+const tablesRoutes = require('./routes/tablesRoutes');
 
-    const columnData = [...new Set(rows.map((row) => row[columnName]))];
-
-    res.json(columnData);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while retrieving column data" });
-  }
-});
-
-app.post("/api/queries/run", async (req, res) => {
-  const { query } = req.body;
-
-  try {
-    const queryStr = buildQuery(query);
-
-    // Run a manual SQL command using the query method
-    const queryResult = await sequelize.query(queryStr);
-    res.json(queryResult);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while running SELECT query" });
-  }
-});
-
-// GET all queries
-app.get("/api/queries", async (req, res) => {
-  try {
-    const queries = await Query.findAll();
-    res.json(queries);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// GET a single query by ID
-app.get("/api/queries/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const query = await Query.findByPk(id);
-    if (query) {
-      res.json(query);
-    } else {
-      res.status(404).json({ message: "Query not found" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// POST a new query
-app.post("/api/queries", async (req, res) => {
-  const { name, body } = req.body;
-  try {
-    const newQuery = await Query.create({ name, body });
-    res.json(newQuery);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// PUT an existing query by ID
-app.put("/api/queries/:id", async (req, res) => {
-  const { id } = req.params;
-  const { name, body } = req.body;
-  try {
-    const query = await Query.findByPk(id);
-    if (query) {
-      query.name = name;
-      query.body = body;
-      await query.save();
-      res.json(query);
-    } else {
-      res.status(404).json({ message: "Query not found" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// DELETE a query by ID
-app.delete("/api/queries/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const query = await Query.findByPk(id);
-    if (query) {
-      await query.destroy();
-      res.json({ message: "Query deleted successfully" });
-    } else {
-      res.status(404).json({ message: "Query not found" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
+app.use('/api/queries', userRoutes);
+app.use('/api/tables', tablesRoutes);
 
 // Start the server
 const port = process.env.PORT || 5001;
@@ -293,3 +76,4 @@ sequelize.sync().then( async () => {
 });
 
 //sequelize.close() TODO: Use this !!
+

@@ -15,8 +15,12 @@ const props = defineProps({
 
 onMounted(() => {
     if (props.data) {
-        selectedDateOperator.value = props.data.operator;
-        selectedDateValue.value = props.data.value;
+        if (props.data.operator) {
+            selectedDateOperator.value = props.data.operator;
+        }
+        if (props.data.value) {
+            selectedDateValue.value = props.data.value;
+        }
     }
 });
 
@@ -57,7 +61,7 @@ function onInputUpdated() {
 }
 
 function limitDateOptions(d) {
-  return d <= date.formatDate(Date.now(), 'YYYY-MM-DD')
+    return d <= date.formatDate(Date.now(), 'YYYY-MM-DD')
 }
 </script>
 
