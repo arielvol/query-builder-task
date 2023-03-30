@@ -46,7 +46,7 @@ onMounted(() => {
     }
 
     //we are necessarily in "load mode"
-    if (props.data && props.data.isQueryLoad) {
+    if (props.data) {
         groupData = deepCopy(toRaw(props.data));
         items.value = deepCopy(toRaw(props.data.items));
         items.value.forEach(item => item.isQueryLoad = true);

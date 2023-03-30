@@ -13,7 +13,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    if (props.data && props.data.isQueryLoad) {
+    if (props.data) {
         selectedNumberOperator.value = props.data.operator;
         selectedNumberValue.value = props.data.value;
     }

@@ -48,8 +48,6 @@ watch(selectedQuery, () => {
     }
 });
 
-
-
 async function onExecuteQueryClicked() {
     const response = await QueryService.executeQuery(query);
     queryExecutionResultJson.value = JSON.stringify(response.data[0]);
@@ -73,6 +71,7 @@ function onDeleteQueryClicked() {
 }
 
 function onCreateQueryClicked() {
+    clearQueryData()
     selectedQuery.value = null;
     isShowQuerySection.value = true;
     queryName.value = `Query ${queries.value.length + 1}`
@@ -82,7 +81,6 @@ function loadSelectedQuery() {
     selectedTableName.value = selectedQuery.value.body.tableName;
     queryName.value = selectedQuery.value.name
     groupData.value = selectedQuery.value.body.data;
-    groupData.value.isQueryLoad = true;
     query.data = deepCopy(toRaw(groupData.value));
     isShowQuerySection.value = true;
 }
@@ -161,10 +159,14 @@ function onSelectedQueryUpdated() {
 }
 
 function clearQueryData() {
-    isShowQuerySection.value = false;
     componentKey.value += 1
     selectedTableName.value = null;
     queryExecutionResultJson.value = null;
+    query = {
+        data: null,
+        tableName: "",
+    };
+    //isShowQuerySection.value = false;
 }
 
 </script>

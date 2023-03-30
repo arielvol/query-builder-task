@@ -30,7 +30,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    if (props.data && props.data.isQueryLoad) {
+    if (props.data) {
         selectedTextOperator.value = props.data.operator;
         if (isInput.value) {
             selectedColumnText.value = props.data.value

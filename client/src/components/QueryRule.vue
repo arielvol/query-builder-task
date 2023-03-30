@@ -36,7 +36,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    if (props.data && props.data.isQueryLoad) {
+    if (props.data) {
         selectedCombineRuleOperator.value = props.data.combineOperator;
         ////TODO: fix later - this is a hack (saving the datatype in the JSON) since for some reason I wasn't able to get the item from
         // the columnList list that is in the prop. The columnList is still not populated on the "onMounted" event (race condition ?).
