@@ -76,6 +76,4 @@ A better way might be to use a store (like Pnina or Vuex) that can save the curr
 3) Currently, the application UI is not entirely responsive, since I used in some css classes the "px" value.
 This could be improved in the future.
 
-4) There are some objects/enums in the components that could be moved to common enum.js file
-
-5) There are some strings in the  components that should be made as constants and placed in a common.js file.
+4) There are some objects/enums in the components that could be moved to a common "enum.js" file. Also there are some strings in the components that should be made as constants and placed in a common "constants.js" file.
