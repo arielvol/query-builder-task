@@ -1,7 +1,0 @@
-
-CLIENT:
-
-1) add layout
-2) create utilities file in "client" and move all enums to there.
-3) create a single Store (Pnina) that will save all the query data instead of emitting evens back to the parents.
-
