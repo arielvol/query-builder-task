@@ -1,3 +1,24 @@
+<template>
+    <div class="column-values">
+        <q-select outlined v-model="selectedDateOperator" :options="dateOptions" label="Operator"
+            class="date-operator q-ml-md" @update:model-value="onDateOperatorChanged" />
+        <q-input outlined v-model="selectedDateValue" mask="date" :rules="['date']" @update:model-value="onInputUpdated"
+            class="q-ml-md">
+            <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date v-model="selectedDateValue" @update:model-value="onInputUpdated">
+                            <div class="row items-center justify-end">
+                                <q-btn v-close-popup label="Close" color="primary" flat />
+                            </div>
+                        </q-date>
+                    </q-popup-proxy>
+                </q-icon>
+            </template>
+        </q-input>
+    </div>
+</template>
+
 <script setup>
 
 import { ref, onMounted } from "vue";
@@ -64,27 +85,6 @@ function limitDateOptions(d) {
     return d <= date.formatDate(Date.now(), 'YYYY-MM-DD')
 }
 </script>
-
-<template>
-    <div class="column-values">
-        <q-select outlined v-model="selectedDateOperator" :options="dateOptions" label="Operator"
-            class="date-operator q-ml-md" @update:model-value="onDateOperatorChanged" />
-        <q-input outlined v-model="selectedDateValue" mask="date" :rules="['date']" @update:model-value="onInputUpdated"
-            class="q-ml-md">
-            <template v-slot:append>
-                <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="selectedDateValue" @update:model-value="onInputUpdated">
-                            <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Close" color="primary" flat />
-                            </div>
-                        </q-date>
-                    </q-popup-proxy>
-                </q-icon>
-            </template>
-        </q-input>
-    </div>
-</template>
 
 <style scoped>
 .date-operator {

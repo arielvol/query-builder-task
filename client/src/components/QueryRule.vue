@@ -1,3 +1,16 @@
+<template>
+    <div class="rule-row">
+        <q-select v-if="index > 0" outlined v-model="selectedCombineRuleOperator" :options="ruleCombineOperatorOptions"
+            label="Operator" class="rule-operator" @update:model-value="onRuleOperatorUpdated" />
+        <label v-else class="first-rule-label"><strong>ARE: </strong></label>
+        <q-select outlined v-model="selectedColumn" :options="columnList" option-label="name" label="Column Name"
+            class="rule-column-name q-ml-md" @update:model-value="onSelectedColumnUpdated" />
+        <component :data="data" :key="componentKey" :is="componentType" :selected-table="selectedTable" :selected-column="selectedColumn"
+            @rule-updated="onRuleUpdated"></component>
+        <q-btn flat><q-icon name="delete_outline" color="grey" @click="onRemoveClicked"/></q-btn>
+    </div>
+</template>
+
 <script setup>
 import { ref, watch, onMounted, toRaw } from "vue";
 import QueryRuleText from "../components/QueryRuleText.vue";
@@ -98,20 +111,6 @@ function onRemoveClicked() {
 }
 
 </script>
-
-
-<template>
-    <div class="rule-row">
-        <q-select v-if="index > 0" outlined v-model="selectedCombineRuleOperator" :options="ruleCombineOperatorOptions"
-            label="Operator" class="rule-operator" @update:model-value="onRuleOperatorUpdated" />
-        <label v-else class="first-rule-label"><strong>ARE: </strong></label>
-        <q-select outlined v-model="selectedColumn" :options="columnList" option-label="name" label="Column Name"
-            class="rule-column-name q-ml-md" @update:model-value="onSelectedColumnUpdated" />
-        <component :data="data" :key="componentKey" :is="componentType" :selected-table="selectedTable" :selected-column="selectedColumn"
-            @rule-updated="onRuleUpdated"></component>
-        <q-btn flat><q-icon name="delete_outline" color="grey" @click="onRemoveClicked"/></q-btn>
-    </div>
-</template>
 
 <style scoped>
 .rule-operator {

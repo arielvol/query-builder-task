@@ -23,6 +23,9 @@ import { ref } from 'vue'
 import LoginService from 'src/services/LoginService';
 import { useRouter } from 'vue-router';
 import jwtDecode from 'jwt-decode'
+import toastr from 'toastr';
+import 'toastr/toastr.scss';
+import  {createErrorMessage} from '../utilities';
 
 const router = useRouter();
 const loggedIn = ref(false)
@@ -57,6 +60,8 @@ async function OnLoginClicked() {
         loginData.value.password = ''
         router.push({ name: 'builder' })
     } catch (err) {
+        const message = createErrorMessage(err);
+        toastr.error(message, "Login Failed");
         successMessage.value = ''
     }
 }
@@ -64,14 +69,14 @@ async function OnLoginClicked() {
 async function OnRegisterClicked() {
 
     try {
-        debugger;
-
         await LoginService.register(loginData.value.username, loginData.value.password)
 
         loginData.value.username = ''
         loginData.value.password = ''
         successMessage.value = 'Registered successfully! Please login now.'
     } catch (err) {
+        const message = createErrorMessage(err);
+        toastr.error(message, "Register Failed");
         successMessage.value = ''
     }
 }

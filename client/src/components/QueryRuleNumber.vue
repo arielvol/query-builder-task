@@ -1,3 +1,12 @@
+<template>
+    <div class="column-values">
+        <q-select outlined v-model="selectedNumberOperator" :options="numberOptions" label="Operator"
+            class="number-operator q-ml-md" @update:model-value="onNumberOperatorChanged" />
+        <q-input v-model="selectedNumberValue" type="number" label="Value" class="q-ml-md"
+            @update:model-value="onInputUpdated" />
+    </div>
+</template>
+
 <script setup>
 
 import { ref, onMounted } from "vue";
@@ -70,15 +79,6 @@ function onInputUpdated() {
     emit("rule-updated", ruleNumberData);
 }
 </script>
-
-<template>
-    <div class="column-values">
-        <q-select outlined v-model="selectedNumberOperator" :options="numberOptions" label="Operator"
-            class="number-operator q-ml-md" @update:model-value="onNumberOperatorChanged" />
-        <q-input v-model="selectedNumberValue" type="number" label="Value" class="q-ml-md"
-            @update:model-value="onInputUpdated" />
-    </div>
-</template>
 
 <style scoped>
 .number-operator {

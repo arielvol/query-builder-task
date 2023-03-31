@@ -1,3 +1,16 @@
+<template>
+    <div class="column-values">
+        <q-select outlined v-model="selectedTextOperator" :options="textOptions" label="Operator"
+            class="text-operator q-ml-md" @update:model-value="onTexOperatorChanged" />
+        <div v-if="selectedTextOperator" class="column-data">
+            <q-input v-if="isInput" v-model="selectedColumnText" type="text" label="Query" class="q-ml-md"
+                @update:model-value="onInputUpdated" />
+            <q-select v-else outlined v-model="selectedColumnValues" :options="columnData" label="Values"
+                :multiple="isMultipleSelect" use-chips class="q-ml-md" @update:model-value="onSelectedValuesUpdated" />
+        </div>
+    </div>
+</template>
+
 <script setup>
 
 import { ref, computed, watch, onMounted } from "vue";
@@ -41,11 +54,6 @@ onMounted(() => {
         }
     }
 });
-
-
-
-
-
 
 const textOperatorOptions = {
     eq: {
@@ -129,19 +137,6 @@ function onSelectedValuesUpdated() {
     emit("rule-updated", ruleTextData);
 }
 </script>
-
-<template>
-    <div class="column-values">
-        <q-select outlined v-model="selectedTextOperator" :options="textOptions" label="Operator"
-            class="text-operator q-ml-md" @update:model-value="onTexOperatorChanged" />
-        <div v-if="selectedTextOperator" class="column-data">
-            <q-input v-if="isInput" v-model="selectedColumnText" type="text" label="Query" class="q-ml-md"
-                @update:model-value="onInputUpdated" />
-            <q-select v-else outlined v-model="selectedColumnValues" :options="columnData" label="Values"
-                :multiple="isMultipleSelect" use-chips class="q-ml-md" @update:model-value="onSelectedValuesUpdated" />
-        </div>
-    </div>
-</template>
 
 <style scoped>
 .text-operator {

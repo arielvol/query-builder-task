@@ -1,3 +1,22 @@
+<template>
+    <q-card bordered>
+        <q-card-section>
+            <div v-if="depth > 1" class="remove-group">
+                <q-btn flat round><q-icon name="clear" color="grey" @click="onRemoveClicked" /></q-btn>
+            </div>
+            <div class="q-pa-md q-gutter-sm">
+                <q-btn outline color="primary" label="Add Rule" icon="add" @click="onAddRuleClick" />
+                <q-btn v-if="depth < 3" outline color="primary" label="Add Group" icon="add" @click="onAddGroupClick" />
+            </div>
+            <div>
+                <component v-for="(item, index) in items" :index="index" :key="item.id" :is="getComponentType(item.type)"
+                    :data="item" :column-list="columnList" :selected-table="selectedTable" :id="item.id" @updated="onUpdated"
+                    @removed="onRemoved" :depth="depth + 1" class="q-mt-md q-mb-md" />
+            </div>
+        </q-card-section>
+    </q-card>
+</template>
+
 <script setup>
 import { ref, onMounted, toRaw } from "vue";
 import QueryRule from "./QueryRule.vue";
@@ -116,25 +135,6 @@ function onRemoveClicked() {
 }
 
 </script>
-
-<template>
-    <q-card bordered>
-        <q-card-section>
-            <div v-if="depth > 1" class="remove-group">
-                <q-btn flat round><q-icon name="clear" color="grey" @click="onRemoveClicked" /></q-btn>
-            </div>
-            <div class="q-pa-md q-gutter-sm">
-                <q-btn outline color="primary" label="Add Rule" icon="add" @click="onAddRuleClick" />
-                <q-btn v-if="depth < 3" outline color="primary" label="Add Group" icon="add" @click="onAddGroupClick" />
-            </div>
-            <div>
-                <component v-for="(item, index) in items" :index="index" :key="item.id" :is="getComponentType(item.type)"
-                    :data="item" :column-list="columnList" :selected-table="selectedTable" :id="item.id" @updated="onUpdated"
-                    @removed="onRemoved" :depth="depth + 1" class="q-mt-md q-mb-md" />
-            </div>
-        </q-card-section>
-    </q-card>
-</template>
 
 <style scoped>
 .remove-group {
