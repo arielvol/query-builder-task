@@ -19,7 +19,8 @@
     "quasar": "^2.6.0",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",
-    "uuid":"^9.0.0"
+    "uuid":"^9.0.0",
+    "jwt-decode":"^3.1.2"
   },
   "devDependencies": {
     "eslint": "^8.10.0",

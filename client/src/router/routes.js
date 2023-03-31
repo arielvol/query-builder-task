@@ -1,22 +1,23 @@
-
 const routes = [
+
   {
-    path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    path: "/",
+    component: () => import("layouts/MainLayout.vue"),
     children: [
-      { path: '', component: () => import('pages/QueryBuilder.vue') }
-    ]
-    // children: [
-    //   { path: '', component: () => import('pages/RegisterAndLogin.vue') }
-    // ]
+      { path: "", component: () => import("pages/RegisterAndLogin.vue") },
+      {
+        path: "/query-builder",
+        name: "builder",
+        component: () => import("pages/QueryBuilder.vue") },
+    ],
+    meta: {
+      requiresAuth: true,
+    },
   },
-
-  // Always leave this as last one,
-  // but you can also remove it
   {
-    path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue')
-  }
-]
+    path: "/:catchAll(.*)*",
+    component: () => import("pages/ErrorNotFound.vue"),
+  },
+];
 
-export default routes
+export default routes;

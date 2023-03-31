@@ -1,44 +1,55 @@
-import axios from 'axios'
+import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5001/api', // TODO: for local testing mode
-  withCredentials: false,
+  baseURL: "http://localhost:5001/api", // TODO: for local testing mode
+  withCredentials: true,
   headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json'
-  }
-})
+    Authorization: `${localStorage.getItem('token')}`,
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  },
+});
+
 
 export default {
   getAllTablesNames() {
-    return apiClient.get('/tables');
+    return apiClient.get("/tables");
   },
   getColumnNames(tableName) {
-    return apiClient.post('/tables/columns', {tableName})
+    return apiClient.post("/tables/columns", { tableName });
   },
 
   getColumnData(tableName, columnName) {
-    return apiClient.post('/tables/columns/data', {tableName, columnName})
+    return apiClient.post("/tables/columns/data", { tableName, columnName });
   },
 
-  getQueries(){
-    return apiClient.get('/queries');
+  getQueries() {
+    const userId = localStorage.getItem("userId") || "";
+    return apiClient.post("/queries/get", { userId });
   },
 
   executeQuery(query) {
-    return apiClient.post('/queries/run', {query})
+    return apiClient.post("/queries/run", { query });
   },
 
   createQuery(query) {
-    return apiClient.post('/queries', { name: query.name, body: query.body });
+    const userId = localStorage.getItem("userId") || "";
+    return apiClient.post("/queries", {
+      name: query.name,
+      body: query.body,
+      userId,
+    });
   },
 
   updateQuery(query) {
+    const userId = localStorage.getItem("userId") || "";
     const { id, ...rest } = query;
-    return apiClient.put('/queries/' +  id, rest);
+    rest.userId = userId;
+    return apiClient.put("/queries/" + id, rest);
   },
 
   deleteQuery(queryId) {
-    return apiClient.delete('/queries/' +  queryId);
-  }
-}
+    const userId = localStorage.getItem("userId") || "";
+    return apiClient.delete("/queries/" + queryId, { userId });
+  },
+};

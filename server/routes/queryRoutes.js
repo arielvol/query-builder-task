@@ -3,8 +3,11 @@ const router = express.Router();
 const Query = require('../models/Query');
 const sequelize = require("../config/database");
 const { buildQuery } = require('../utilities');
+const authMiddleware = require('../middleware/authMiddleware');
+const sanitizeMiddleware = require('../middleware/sanitizeMiddleware');
 
-router.post("/run", async (req, res) => {
+
+router.post("/run", [authMiddleware],  async (req, res) => {
   const { query } = req.body;
 
   try {
@@ -22,9 +25,10 @@ router.post("/run", async (req, res) => {
 });
 
 // GET all queries
-router.get("/", async (req, res) => {
+router.post("/get", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   try {
-    const queries = await Query.findAll();
+    const { userId } = req.body;
+    const queries = await Query.findAll({ where: { userId } });
     res.json(queries);
   } catch (error) {
     console.error(error);
@@ -33,7 +37,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET a single query by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   const { id } = req.params;
   try {
     const query = await Query.findByPk(id);
@@ -49,7 +53,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST a new query
-router.post("/", async (req, res) => {
+router.post("/", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   const { name, body, userId } = req.body;
   try {
     const newQuery = await Query.create({ name, body, userId });
@@ -61,11 +65,10 @@ router.post("/", async (req, res) => {
 });
 
 // PUT an existing query by ID
-router.put("/:id", async (req, res) => {
-  const { id } = req.params;
-  const { name, body } = req.body;
+router.put("/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
+  const { name, body, userId } = req.body;
   try {
-    const query = await Query.findByPk(id);
+    const query = await Query.findOne({ where: { id: req.params.id, userId } });
     if (query) {
       query.name = name;
       query.body = body;
@@ -81,10 +84,10 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE a query by ID
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
+router.delete("/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   try {
-    const query = await Query.findByPk(id);
+    const { userId } = req.body;
+    const query = await Query.findOne({ where: { id: req.params.id, userId } });
     if (query) {
       await query.destroy();
       res.json({ message: "Query deleted successfully" });

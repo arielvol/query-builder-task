@@ -2,8 +2,11 @@ const { Sequelize } = require('sequelize');
 const express = require("express");
 const router = express.Router();
 const sequelize = require("../config/database");
+const authMiddleware = require('../middleware/authMiddleware');
+const sanitizeMiddleware = require('../middleware/sanitizeMiddleware');
 
-router.get("/", async (req, res) => {
+
+router.get("/", [authMiddleware, sanitizeMiddleware] , async (req, res) => {
   try {
     const query = `
       SELECT tablename
@@ -21,7 +24,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/columns", async (req, res) => {
+router.post("/columns", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   const { tableName } = req.body;
 
   if (!tableName) {
@@ -50,7 +53,7 @@ router.post("/columns", async (req, res) => {
   }
 });
 
-router.post("/columns/data", async (req, res) => {
+router.post("/columns/data", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   const { tableName, columnName } = req.body;
 
   if (!tableName || !columnName) {

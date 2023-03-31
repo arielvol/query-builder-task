@@ -3,6 +3,9 @@ import { ref, onMounted, watch, toRaw } from "vue";
 import QueryService from "../services/QueryService"
 import QueryGroup from "../components/QueryGroup.vue"
 import deepCopy from "../utilities.js"
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 let groupData = ref(null);
 let tableNames = ref([]);
@@ -116,7 +119,7 @@ async function updateSelectedQuery() {
     const updatedQueryObj = {
         name: queryName.value,
         body: query,
-        id: selectedQuery.value.id
+        id: selectedQuery.value.id,
     }
     try {
         const response = await QueryService.updateQuery(updatedQueryObj);
@@ -134,7 +137,7 @@ async function createNewQuery() {
     try {
         const newQueryObj = {
             name: queryName.value,
-            body: query
+            body: query,
         }
         const response = await QueryService.createQuery(newQueryObj);
         queries.value.push(response.data);
@@ -169,11 +172,22 @@ function clearQueryData() {
     //isShowQuerySection.value = false;
 }
 
+function onLogoutClicked() {
+    // Remove the token from local storage
+    localStorage.removeItem('token')
+    localStorage.removeItem('userId')
+    router.push("/");
+}
+
+
 </script>
 
 <template>
     <q-page padding>
         <div class="q-mb-md">
+            <div class="pin-to-right q-mb-md">
+             <q-btn outlined color="red" label="Logout" class="" @click="onLogoutClicked" />
+            </div>
             <q-select outlined v-model="selectedQuery" :options="queries" option-label="name" label="Queries:"
                 class="q-mb-md" :disable="queries.length === 0" @update:model-value="onSelectedQueryUpdated" />
             <div class="flex">
@@ -204,8 +218,8 @@ function clearQueryData() {
             <QueryGroup v-if="selectedTableName" :key="componentKey" :depth="depth" :selected-table="selectedTableName"
                 :column-list="columnsList" @updated="onUpdated" :data="groupData" />
             <q-separator />
-            <div class="lower-section q-mt-md">
-                <q-btn color="red" label="Execute Query" class="q-ml-md" @click="onExecuteQueryClicked" />
+            <div class="pin-to-right q-mt-md">
+                <q-btn color="orange" label="Execute Query" class="q-ml-md" @click="onExecuteQueryClicked" />
                 <q-btn color="green" label="Save Query" @click="onSaveQueryClicked" />
             </div>
             <div>
@@ -220,7 +234,7 @@ function clearQueryData() {
 </template>
 
 <style scoped>
-.lower-section {
+.pin-to-right {
     display: flex;
     direction: rtl;
 }

@@ -3,8 +3,9 @@ import axios from 'axios'
 const apiClient = axios.create({
   //baseURL: 'http://localhost:5001/api/employees',  TODO: for local testing mode
   baseURL: '/api/employees',
-  withCredentials: false,
+  withCredentials: true,
   headers: {
+    Authorization: `${localStorage.getItem('token')}`,
     Accept: 'application/json',
     'Content-Type': 'application/json',
   },

@@ -12,6 +12,5 @@ CLIENT:
 
 SERVER:
 
-1) add router and divide api endpoint to separate files.
 2) add unit tests.
 3) add security "Sanatizing" to the input coming from the client.
