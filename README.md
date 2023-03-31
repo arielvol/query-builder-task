@@ -45,23 +45,25 @@ npm test
 
 # Explanation on architectural and components design:
 
-A query builder is usually used on structured data.
+- A query builder is usually used on structured data.
 For this reason, I decided to choose a Rational database, and not a non Rational database (like Mongo).
 Since I wanted to save the queries made by the user as a JSON, the PG database was a natural decision since
 it supports a JSON type columns.
 
-I decided to to use the "sequlize" ORM in the server side since I found it very "user friendly" and easy to
+- I decided to to use the "sequlize" ORM in the server side since I found it very "user friendly" and easy to
 write and configure.
 
-For the authentication, I decided to use the JWT paradigm.
+- I added a Login/Register page so that we could create users and each user will be able to create his own queries, save them, delete them, or load them.
+
+- For the authentication, I decided to use the JWT paradigm.
 When a user successfully login to the system, a JWT is created on the server side and send to the client side.
 On the client side, the JWT and the user ID, which is embedded in the JWT, are both saved in the browser local storage, and are automatically sent with each API call (except for the Register and Login APIs) inside the Authorization header.
-
 On the server side, I configured all the routs, using an authentication middleware, to only accept requests that have a valid JWT.
+Also, I have "salted" and encrypted all the password when a users are created.
 
-I also added a sanitation middleware for some of the server API endpoints.
+- I added a sanitation middleware for some of the server API endpoints.
 
-I added some unit test in the server side to check that the query parsing is always working as it should.
+- I added some unittest on the server side to check that the query parsing methods are working as expected.
 
 
 ## Things that could be improved in the application:
