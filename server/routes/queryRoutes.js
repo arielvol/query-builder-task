@@ -25,10 +25,9 @@ router.post("/run", [authMiddleware],  async (req, res) => {
 });
 
 // GET all queries
-router.post("/get", [authMiddleware, sanitizeMiddleware], async (req, res) => {
+router.get("/:userId", [authMiddleware], async (req, res) => {
   try {
-    const { userId } = req.body;
-    const queries = await Query.findAll({ where: { userId } });
+    const queries = await Query.findAll({ where: { userId: req.params.userId  } });
     res.json(queries);
   } catch (error) {
     console.error(error);
@@ -36,27 +35,12 @@ router.post("/get", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   }
 });
 
-// GET a single query by ID
-router.get("/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
-  const { id } = req.params;
-  try {
-    const query = await Query.findByPk(id);
-    if (query) {
-      res.json(query);
-    } else {
-      res.status(404).json({ message: "Query not found" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 // POST a new query
-router.post("/", [authMiddleware, sanitizeMiddleware], async (req, res) => {
-  const { name, body, userId } = req.body;
+router.post("/:userId", [authMiddleware], async (req, res) => {
+  const { name, body} = req.body;
   try {
-    const newQuery = await Query.create({ name, body, userId });
+    const newQuery = await Query.create({ name, body, userId: req.params.userId });
     res.json(newQuery);
   } catch (error) {
     console.error(error);
@@ -65,10 +49,10 @@ router.post("/", [authMiddleware, sanitizeMiddleware], async (req, res) => {
 });
 
 // PUT an existing query by ID
-router.put("/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
-  const { name, body, userId } = req.body;
+router.put("/:userId/:id", [authMiddleware], async (req, res) => {
+  const { name, body } = req.body;
   try {
-    const query = await Query.findOne({ where: { id: req.params.id, userId } });
+    const query = await Query.findOne({ where: { id: req.params.id, userId: req.params.userId } });
     if (query) {
       query.name = name;
       query.body = body;
@@ -84,10 +68,9 @@ router.put("/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
 });
 
 // DELETE a query by ID
-router.delete("/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
+router.delete("/:userId/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   try {
-    const { userId } = req.body;
-    const query = await Query.findOne({ where: { id: req.params.id, userId } });
+    const query = await Query.findOne({ where: { id: req.params.id, userId: req.params.userId } });
     if (query) {
       await query.destroy();
       res.json({ message: "Query deleted successfully" });

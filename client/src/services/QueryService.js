@@ -25,7 +25,7 @@ export default {
 
   getQueries() {
     const userId = localStorage.getItem("userId") || "";
-    return apiClient.post("/queries/get", { userId });
+    return apiClient.get(`/queries/${userId}`);
   },
 
   executeQuery(query) {
@@ -34,10 +34,9 @@ export default {
 
   createQuery(query) {
     const userId = localStorage.getItem("userId") || "";
-    return apiClient.post("/queries", {
+    return apiClient.post(`/queries/${userId}`, {
       name: query.name,
       body: query.body,
-      userId,
     });
   },
 
@@ -45,11 +44,12 @@ export default {
     const userId = localStorage.getItem("userId") || "";
     const { id, ...rest } = query;
     rest.userId = userId;
-    return apiClient.put("/queries/" + id, rest);
+    return apiClient.put(`/queries/${userId}/${id}`, rest);
   },
 
   deleteQuery(queryId) {
     const userId = localStorage.getItem("userId") || "";
-    return apiClient.delete("/queries/" + queryId, { userId });
+    return apiClient.delete(`/queries/${userId}/${queryId}`);
+
   },
 };
