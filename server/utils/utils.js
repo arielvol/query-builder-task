@@ -3,6 +3,14 @@ const { faker } = require("@faker-js/faker");
 function buildQuery(queryData) {
   const { tableName, data } = queryData;
 
+  if (!tableName) {
+    throw new Error(`Table Names is missing.`);
+  }
+
+  if (!data) {
+    throw new Error(`Query data is missing.`);
+  }
+
   let query = `SELECT * from "${tableName}" WHERE `;
 
   const groupQuery = parseGroup(data)
@@ -79,7 +87,7 @@ function parseRules(rules) {
 }
 
 function parseGroup(group) {
-    let query = "( ";
+    let query = "(";
 
     const rules = group.items.filter((item) => item.type === "RULE");
     const groups = group.items.filter((item) => item.type === "GROUP");
@@ -150,6 +158,7 @@ async function populateEmployeeTable(count, employeeModelClass) {
 
 module.exports = {
   buildQuery,
-  generateEmployeeDummyData,
   populateEmployeeTable,
+  parseGroup,
+  parseRules,
 };

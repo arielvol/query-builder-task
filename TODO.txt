@@ -4,13 +4,4 @@ CLIENT:
 1) add layout
 2) create utilities file in "client" and move all enums to there.
 3) create a single Store (Pnina) that will save all the query data instead of emitting evens back to the parents.
-4) validations:
-    - don't allow to execute a query if no rules are set.
 
-
-5) delete EmployeeService.js 
-
-SERVER:
-
-2) add unit tests.
-3) add security "Sanatizing" to the input coming from the client.

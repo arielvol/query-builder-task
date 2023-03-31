@@ -6,8 +6,8 @@
                     <q-input v-model="loginData.username" label="Username" type="text" required />
                     <q-input v-model="loginData.password" label="Password" type="password" required />
                     <q-btn type="submit" label="Login" color="primary" class="login-button" />
-                    <div class="success-message">
-                        <div class="message">{{ successMessage }}</div>
+                    <div class="message-section">
+                        <div class="message">{{ userMessage }}</div>
                     </div>
                 </q-form>
             </q-card-section>
@@ -25,7 +25,7 @@ import { useRouter } from 'vue-router';
 import jwtDecode from 'jwt-decode'
 import toastr from 'toastr';
 import 'toastr/toastr.scss';
-import  {createErrorMessage} from '../utilities';
+import { createErrorMessage } from '../utilities';
 
 const router = useRouter();
 const loggedIn = ref(false)
@@ -37,7 +37,7 @@ const loginData = ref({
     password: ''
 })
 
-const successMessage = ref('')
+const userMessage = ref('')
 
 async function OnLoginClicked() {
 
@@ -62,22 +62,25 @@ async function OnLoginClicked() {
     } catch (err) {
         const message = createErrorMessage(err);
         toastr.error(message, "Login Failed");
-        successMessage.value = ''
+        userMessage.value = ''
     }
 }
 
 async function OnRegisterClicked() {
 
     try {
-        await LoginService.register(loginData.value.username, loginData.value.password)
-
-        loginData.value.username = ''
-        loginData.value.password = ''
-        successMessage.value = 'Registered successfully! Please login now.'
+        if (loginData.value.username && loginData.value.password) {
+            await LoginService.register(loginData.value.username, loginData.value.password)
+            loginData.value.username = ''
+            loginData.value.password = ''
+            userMessage.value = 'Registered successfully! Please login now.'
+        } else {
+            userMessage.value = 'Both username and password are required.'
+        }
     } catch (err) {
         const message = createErrorMessage(err);
         toastr.error(message, "Register Failed");
-        successMessage.value = ''
+        userMessage.value = ''
     }
 }
 </script >
@@ -109,7 +112,7 @@ async function OnRegisterClicked() {
     margin-top: 16px;
 }
 
-.success-message {
+.message-section {
     display: flex;
     flex-direction: column;
     justify-content: center;

@@ -43,7 +43,7 @@
                     <span><strong>Found {{ queryExecutionResultsNumber }} Results:</strong></span>
                     <q-input class="query-results" v-model="queryExecutionResultJson" type="textarea" />
                     <div class="pin-to-right q-mt-md">
-                        <q-btn outline color="primary" label="Export to Json" @click="exportWasClicked" />
+                        <q-btn outline color="secondary" label="Export to Json" @click="exportWasClicked" />
                     </div>
                 </div>
             </div>

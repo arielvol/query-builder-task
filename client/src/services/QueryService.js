@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:5001/api", // TODO: for local testing mode
+  baseURL: "http://localhost:5005/api", // TODO: for local testing mode
   withCredentials: true,
   headers: {
     Authorization: `${localStorage.getItem('token')}`,

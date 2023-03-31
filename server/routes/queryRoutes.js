@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Query = require('../models/Query');
 const sequelize = require("../config/database");
-const { buildQuery } = require('../utilities');
+const { buildQuery } = require('../utils/utils');
 const authMiddleware = require('../middleware/authMiddleware');
 const sanitizeMiddleware = require('../middleware/sanitizeMiddleware');
 
@@ -24,7 +24,6 @@ router.post("/run", [authMiddleware],  async (req, res) => {
   }
 });
 
-// GET all queries
 router.get("/:userId", [authMiddleware], async (req, res) => {
   try {
     const queries = await Query.findAll({ where: { userId: req.params.userId  } });
@@ -35,8 +34,6 @@ router.get("/:userId", [authMiddleware], async (req, res) => {
   }
 });
 
-
-// POST a new query
 router.post("/:userId", [authMiddleware], async (req, res) => {
   const { name, body} = req.body;
   try {
@@ -48,7 +45,6 @@ router.post("/:userId", [authMiddleware], async (req, res) => {
   }
 });
 
-// PUT an existing query by ID
 router.put("/:userId/:id", [authMiddleware], async (req, res) => {
   const { name, body } = req.body;
   try {
@@ -67,7 +63,6 @@ router.put("/:userId/:id", [authMiddleware], async (req, res) => {
   }
 });
 
-// DELETE a query by ID
 router.delete("/:userId/:id", [authMiddleware, sanitizeMiddleware], async (req, res) => {
   try {
     const query = await Query.findOne({ where: { id: req.params.id, userId: req.params.userId } });
