@@ -13,10 +13,10 @@
 
 <script setup>
 import { ref, watch, onMounted, toRaw } from "vue";
-import QueryRuleText from "../components/QueryRuleText.vue";
-import QueryRuleNumber from "../components/QueryRuleNumber.vue";
-import QueryRuleDate from "../components/QueryRuleDate.vue";
-import deepCopy from "../utilities.js"
+import QueryRuleText from "./RuleComponents/QueryRuleText.vue";
+import QueryRuleNumber from "./RuleComponents/QueryRuleNumber.vue";
+import QueryRuleDate from "./RuleComponents/QueryRuleDate.vue";
+import { deepCopy } from "../utils/utils"
 
 const ruleCombineOperatorOptions = ["AND", "OR"];
 let selectedCombineRuleOperator = ref("AND");

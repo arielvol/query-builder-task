@@ -23,9 +23,12 @@
 
 import { ref, onMounted } from "vue";
 import { date } from 'quasar'
+import { dateOperatorOptions } from "../../common/constants"
 
 let selectedDateOperator = ref("");
 let selectedDateValue = ref("");
+
+const emit = defineEmits(['rule-updated'])
 
 const props = defineProps({
     data: {
@@ -50,23 +53,6 @@ let ruleDateData = {
     ruleType: "DATE",
 };
 
-const emit = defineEmits(['rule-updated'])
-
-const dateOperatorOptions = {
-    eq: {
-        label: "EQUALS",
-        value: "eq"
-    },
-    before: {
-        label: "BEFORE",
-        value: "before"
-    },
-    after: {
-        label: "AFTER",
-        value: "after"
-    },
-}
-
 const dateOptions = Object.values(dateOperatorOptions);
 
 
@@ -81,9 +67,6 @@ function onInputUpdated() {
     emit("rule-updated", ruleDateData);
 }
 
-function limitDateOptions(d) {
-    return d <= date.formatDate(Date.now(), 'YYYY-MM-DD')
-}
 </script>
 
 <style scoped>

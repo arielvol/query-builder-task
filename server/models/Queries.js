@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const User = require('./User');
+const Users = require('./Users');
 
-const Query = sequelize.define('Query', {
+const Queries = sequelize.define('Queries', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -25,7 +25,7 @@ const Query = sequelize.define('Query', {
       }
     }
   });
-  User.hasMany(Query, { foreignKey: 'userId' });
-  Query.belongsTo(User, { foreignKey: 'userId' });
+  Users.hasMany(Queries, { foreignKey: 'userId' });
+  Queries.belongsTo(Users, { foreignKey: 'userId' });
 
-  module.exports = Query;
+  module.exports = Queries;

@@ -3,7 +3,7 @@ const app = express();
 const sequelize = require("./config/database");
 const bodyParser = require("body-parser");
 const { populateEmployeeTable } = require('./utils/utils');
-const Employee = require('./models/Employee');
+const Employees = require('./models/Employees');
 const cors = require("cors");
 
 //TODO: In production mode the server URL should be in an environment variable.
@@ -22,9 +22,9 @@ app.use('/api', loginRoutes);
 
 const port = process.env.PORT || 5005;
 sequelize.sync().then( async () => {
-  const count = await Employee.count()
+  const count = await Employees.count()
   if (count === 0) {
-    populateEmployeeTable(1000, Employee)
+    populateEmployeeTable(1000, Employees)
     .then(() => {
       console.log("Employee table populated successfully.");
     })

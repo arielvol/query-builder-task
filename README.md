@@ -17,6 +17,19 @@ npm install
 npm install
 ```
 
+## Update Postgres config
+
+Under the sever folder, under the config folder, is a configuration file (database.js) that holds the config
+to connect to your local PG database.
+
+currently the configuration are:
+
+database: "postgres",
+username: "postgres",
+password: "admin",
+port: 5432,
+
+Please update them according to your own PG database configuration.
 
 ### Start the the client and server:
 
@@ -76,4 +89,5 @@ A better way might be to use a store (like Pnina or Vuex) that can save the curr
 3) Currently, the application UI is not entirely responsive, since I used in some css classes the "px" value.
 This could be improved in the future.
 
-4) There are some objects/enums in the components that could be moved to a common "enum.js" file. Also there are some strings in the components that should be made as constants and placed in a common "constants.js" file.
+4) We can add more unit tests on the server side for all the routes, to check that they are throwing the expected exceptions, and returning the expected status code for each scenario.
+We can also add unit tets on the client side to set some of the components functionality.

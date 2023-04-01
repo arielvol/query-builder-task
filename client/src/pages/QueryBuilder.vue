@@ -13,21 +13,6 @@
                 <q-btn outline color="primary" label="Delete Query" class="q-ml-md" @click="onDeleteQueryClicked" />
                 <q-btn outline color="primary" label="Create Query" class="q-ml-md" @click="onCreateQueryClicked" />
             </div>
-            <q-dialog v-model="isShowDeleteModal">
-                <q-card>
-                    <q-card-section>
-                        <q-card-section class="row items-center">
-                            <q-icon name="warning" color="warning" size="4rem" />
-                            <span class="q-ml-sm">Are you sure you want to delete ?</span>
-                        </q-card-section>
-                    </q-card-section>
-
-                    <q-card-actions align="right">
-                        <q-btn label="No" color="red" @click="isShowDeleteModal = false" />
-                        <q-btn label="Yes" color="green" @click="onDeleteYesClicked" />
-                    </q-card-actions>
-                </q-card>
-            </q-dialog>
         </div>
         <q-separator />
         <div v-if="isShowQuerySection">
@@ -59,11 +44,10 @@
 import { ref, onMounted, watch, toRaw, h } from "vue";
 import QueryService from "../services/QueryService"
 import QueryGroup from "../components/QueryGroup.vue"
-import deepCopy from "../utilities.js"
 import { useRouter } from 'vue-router';
 import toastr from 'toastr';
 import 'toastr/toastr.scss';
-import { createErrorMessage } from '../utilities';
+import { createErrorMessage, deepCopy } from '../utils/utils';
 import useQuasar from 'quasar/src/composables/use-quasar.js';
 
 const $q = useQuasar()
@@ -75,6 +59,7 @@ let columnsList = ref([]);
 let selectedTableName = ref(null);
 let queryExecutionResultJson = ref([]);
 let queryExecutionResultsNumber = ref(0);
+let isLoadMode = false;
 
 const depth = 1;
 const componentKey = ref(0);
@@ -83,7 +68,6 @@ let queries = ref([]);
 let queryName = ref("");
 let selectedQuery = ref("");
 let isShowQuerySection = ref(false);
-let isShowDeleteModal = ref(false);
 
 let query = {
     data: null,
@@ -108,7 +92,6 @@ onMounted(async () => {
 
 });
 
-
 watch(selectedTableName, async () => {
     componentKey.value += 1
     if (selectedTableName.value) {
@@ -122,6 +105,30 @@ watch(selectedTableName, async () => {
         }
     }
 })
+
+// watch(selectedTableName, async () => {
+//     if (selectedTableName.value) {
+//         try {
+//             componentKey.value += 1
+
+//             if (isLoadMode) {
+//                 const response = await QueryService.getColumnNames(selectedTableName.value);
+//                 columnsList.value = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
+//                 isLoadMode = false;
+//             } else {
+//                 groupData.value = null;
+//                 query.data = null;
+//                 const response = await QueryService.getColumnNames(selectedTableName.value);
+//                 columnsList.value = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
+//             }
+//             query.tableName = selectedTableName.value;
+
+//         } catch (err) {
+//             const message = createErrorMessage(err);
+//             toastr.error(message, "Error getting columns list");
+//         }
+//     }
+// })
 
 watch(selectedQuery, () => {
     if (selectedQuery.value) {
@@ -144,13 +151,10 @@ async function onExecuteQueryClicked() {
     }
 }
 
-function onUpdated(groupData) {
-    query.data = groupData;
-}
-
 async function onLoadQueryClicked() {
     if (selectedQuery.value) {
         clearQueryData();
+        isLoadMode = true;
         loadSelectedQuery();
     } else {
         await showModal(
@@ -164,7 +168,14 @@ async function onLoadQueryClicked() {
 
 async function onDeleteQueryClicked() {
     if (selectedQuery.value) {
-        isShowDeleteModal.value = true;
+
+        const isDeleteQuery = await showModal(
+            "Delete Confirmation",
+            `Are you sure you want to delete this query ?`,
+        );
+        if (isDeleteQuery) {
+            deleteQuery()
+        }
     } else {
         await showModal(
             "No Query Selected",
@@ -182,14 +193,6 @@ function onCreateQueryClicked() {
     queryName.value = `Query ${queries.value.length + 1}`
 }
 
-function loadSelectedQuery() {
-    selectedTableName.value = selectedQuery.value.body.tableName;
-    queryName.value = selectedQuery.value.name
-    groupData.value = selectedQuery.value.body.data;
-    query.data = deepCopy(toRaw(groupData.value));
-    isShowQuerySection.value = true;
-}
-
 function onSaveQueryClicked() {
     saveQuery();
     queryExecutionResultJson.value = null;
@@ -200,7 +203,6 @@ async function onExportQueryClicked() {
     if (selectedQuery.value) {
         const response = await QueryService.exportQuery(selectedQuery.value.id);
         const exportedQuery = response.data;
-        console.log("Exported query:", exportedQuery);
 
         // Save the JSON as a file
         const fileName = `${selectedQuery.value.name}.json`;
@@ -221,121 +223,6 @@ async function onExportQueryClicked() {
             "Ok",
             "Cancel"
         );
-    }
-}
-
-function mapDataType(dataType) {
-    if (dataType.startsWith("character")) {
-        return "STRING";
-    } else if (dataType.startsWith("integer")) {
-        return "NUMBER";
-    } else if (dataType.startsWith("timestamp") || dataType.startsWith("date")) {
-        return "DATE";
-    }
-    return "UNKNOWN";
-}
-
-async function saveQuery() {
-    //Update
-    if (selectedQuery.value) {
-        updateSelectedQuery();
-    } else { //New
-        createNewQuery();
-    }
-}
-
-async function updateSelectedQuery() {
-    const updatedQueryObj = {
-        name: queryName.value,
-        body: query,
-        id: selectedQuery.value.id,
-    }
-    try {
-        const response = await QueryService.updateQuery(updatedQueryObj);
-        const updatedQuery = response.data;
-        let foundQuery = queries.value.find(query => query.id == updatedQuery.id);
-        if (foundQuery) {
-            foundQuery = { ...updatedQuery }
-        }
-        toastr.success("Query was updated successfully.");
-    } catch (error) {
-        const message = createErrorMessage(err);
-        toastr.error(message, "Error while trying to save the updated query");
-    }
-}
-
-async function createNewQuery() {
-    const newQueryObj = {
-        name: queryName.value,
-        body: query,
-    }
-    try {
-
-        const response = await QueryService.createQuery(newQueryObj);
-        queries.value.push(response.data);
-        toastr.success("A new Query was created successfully.");
-    } catch (err) {
-        const message = createErrorMessage(err);
-        toastr.error(message, "Error while trying to save the new query");
-    }
-}
-
-async function onDeleteYesClicked() {
-    try {
-        isShowDeleteModal.value = false;
-        await QueryService.deleteQuery(selectedQuery.value.id);
-        queries.value = queries.value.filter(query => query.id !== selectedQuery.value.id);
-        selectedQuery.value = null;
-        toastr.success("Query was deleted successfully.");
-    } catch (err) {
-        const message = createErrorMessage(err);
-        toastr.error(message, "Error while trying to delete selected query");
-    }
-}
-
-function onSelectedQueryUpdated() {
-    clearQueryData();
-}
-
-function clearQueryData() {
-    componentKey.value += 1
-    selectedTableName.value = null;
-    queryExecutionResultJson.value = null;
-    query = {
-        data: null,
-        tableName: "",
-    };
-    isShowQuerySection.value = false;
-}
-
-function onLogoutClicked() {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userId')
-    router.push("/");
-}
-
-function onExportToJSONWasClicked() {
-    try {
-        const data = JSON.stringify(queryExecutionResultJson.value, null, 2);
-        const file = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(file);
-        const link = document.createElement('a');
-        link.href = url;
-        let filename;
-        if (queryName.value) {
-            filename = `${queryName.value} Results.json`;
-        } else {
-            filename = "query_results.json";
-        }
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        toastr.success("Query results were exported successfully.");
-    } catch (error) {
-        const message = createErrorMessage(err);
-        toastr.error(message, "Error while trying to export a query.");
     }
 }
 
@@ -373,10 +260,9 @@ async function onImportQueryClicked() {
                         return;
                     }
                 }
-                const response = await QueryService.importQuery(queryToImport);
-                const importedQuery = response.data;
+                await QueryService.importQuery(queryToImport);
                 toastr.success("Query was imported successfully.");
-
+                clearQueryData();
                 // Refresh the queries list
                 const queriesResponse = await QueryService.getQueries();
                 queries.value = queriesResponse.data;
@@ -388,6 +274,131 @@ async function onImportQueryClicked() {
     });
 
     fileInput.click();
+}
+
+function onLogoutClicked() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userId')
+    router.push("/");
+}
+
+function onExportToJSONWasClicked() {
+    try {
+        const data = JSON.stringify(queryExecutionResultJson.value, null, 2);
+        const file = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        let filename;
+        if (queryName.value) {
+            filename = `${queryName.value} Results.json`;
+        } else {
+            filename = "query_results.json";
+        }
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toastr.success("Query results were exported successfully.");
+    } catch (error) {
+        const message = createErrorMessage(err);
+        toastr.error(message, "Error while trying to export a query.");
+    }
+}
+
+function onUpdated(groupData) {
+    query.data = groupData;
+}
+
+function onSelectedQueryUpdated() {
+    clearQueryData();
+}
+
+function mapDataType(dataType) {
+    if (dataType.startsWith("character")) {
+        return "STRING";
+    } else if (dataType.startsWith("integer")) {
+        return "NUMBER";
+    } else if (dataType.startsWith("timestamp") || dataType.startsWith("date")) {
+        return "DATE";
+    }
+    return "UNKNOWN";
+}
+
+async function saveQuery() {
+    //Update
+    if (selectedQuery.value) {
+        updateSelectedQuery();
+    } else { //New
+        createNewQuery();
+    }
+}
+
+async function deleteQuery() {
+    try {
+        await QueryService.deleteQuery(selectedQuery.value.id);
+        queries.value = queries.value.filter(query => query.id !== selectedQuery.value.id);
+        selectedQuery.value = null;
+        toastr.success("Query was deleted successfully.");
+    } catch (err) {
+        const message = createErrorMessage(err);
+        toastr.error(message, "Error while trying to delete selected query");
+    }
+}
+
+function loadSelectedQuery() {
+    selectedTableName.value = selectedQuery.value.body.tableName;
+    queryName.value = selectedQuery.value.name
+    groupData.value = selectedQuery.value.body.data;
+    query.data = deepCopy(toRaw(groupData.value));
+    isShowQuerySection.value = true;
+}
+
+async function updateSelectedQuery() {
+    const updatedQueryObj = {
+        name: queryName.value,
+        body: query,
+        id: selectedQuery.value.id,
+    }
+    try {
+        await QueryService.updateQuery(updatedQueryObj);
+        // Refresh the queries list
+        const queriesResponse = await QueryService.getQueries();
+        queries.value = queriesResponse.data;
+        toastr.success("Query was updated successfully.");
+    } catch (error) {
+        const message = createErrorMessage(err);
+        toastr.error(message, "Error while trying to save the updated query");
+    }
+}
+
+async function createNewQuery() {
+    const newQueryObj = {
+        name: queryName.value,
+        body: query,
+    }
+    try {
+
+        const response = await QueryService.createQuery(newQueryObj);
+        queries.value.push(response.data);
+        toastr.success("A new Query was created successfully.");
+    } catch (err) {
+        const message = createErrorMessage(err);
+        toastr.error(message, "Error while trying to save the new query");
+    }
+}
+
+function clearQueryData(showQuerySection = false)  {
+    componentKey.value += 1
+    selectedTableName.value = null;
+    queryExecutionResultJson.value = null;
+    groupData.value = null;
+    query = {
+        data: null,
+        tableName: "",
+    };
+    isShowQuerySection.value = showQuerySection;
 }
 
 function showModal(title, message, okLabel = "Yes", cancelLabel = "No") {

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
+const Users = require("../models/Users");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const sanitizeMiddleware = require('../middleware/sanitizeMiddleware');
@@ -12,7 +12,7 @@ router.post("/register", registerSanitizeMiddleware, async (req, res) => {
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  await User.create({ username, password: hashedPassword });
+  await Users.create({ username, password: hashedPassword });
 
   res.status(200).send("User created");
 });
@@ -20,7 +20,7 @@ router.post("/register", registerSanitizeMiddleware, async (req, res) => {
 router.post("/login", sanitizeMiddleware, async (req, res) => {
   const { username, password } = req.body;
 
-  const user = await User.findOne({ where: { username } });
+  const user = await Users.findOne({ where: { username } });
 
   if (!user) {
     return res.status(401).send("Invalid username or password");

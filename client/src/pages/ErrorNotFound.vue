@@ -14,7 +14,7 @@
         color="white"
         text-color="blue"
         unelevated
-        to="/"
+        to="/query-builder"
         label="Go Home"
         no-caps
       />
@@ -22,10 +22,10 @@
   </div>
 </template>
 
-<script>
+<script script>
 import { defineComponent } from 'vue'
 
-export default defineComponent({
+defineComponent({
   name: 'ErrorNotFound'
 })
 </script>

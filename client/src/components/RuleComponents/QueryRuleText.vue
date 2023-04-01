@@ -14,7 +14,8 @@
 <script setup>
 
 import { ref, computed, watch, onMounted } from "vue";
-import QueryService from "../services/QueryService"
+import QueryService from "../../services/QueryService"
+import {textOperatorOptions} from "../../common/constants"
 
 let selectedTextOperator = ref("");
 let selectedColumnText = ref("");
@@ -55,40 +56,7 @@ onMounted(() => {
     }
 });
 
-const textOperatorOptions = {
-    eq: {
-        label: "EQUALS",
-        value: "eq"
-    },
-    neq: {
-        label: "NOT EQUALS",
-        value: "neq"
-    },
-    contains: {
-        label: "CONTAINS",
-        value: "contains"
-    },
-    notcontains: {
-        label: "NOT CONTAINS",
-        value: "notcontains"
-    },
-    startswith: {
-        label: "START WITH",
-        value: "startswith"
-    },
-    endswith: {
-        label: "ENDS WITH",
-        value: "endswith"
-    },
-    in: {
-        label: "IN",
-        value: "in"
-    },
-    notin: {
-        label: "NOT IN",
-        value: "notin"
-    },
-}
+const textOptions = Object.values(textOperatorOptions);
 
 const isMultipleSelect = computed(() => {
     return [textOperatorOptions.in.label, textOperatorOptions.notin.label].includes(selectedTextOperator.value.label);
@@ -103,7 +71,6 @@ const isInput = computed(() => {
     ].includes(selectedTextOperator.value.label);
 })
 
-const textOptions = Object.values(textOperatorOptions);
 
 watch(selectedTextOperator, async () => {
     if (!isInput.value) {

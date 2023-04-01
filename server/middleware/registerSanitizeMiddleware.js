@@ -5,8 +5,10 @@ function registerSanitizeMiddleware(req, res, next) {
     req.body.username = validator.trim(req.body.username);
     req.body.username = validator.escape(req.body.username);
     req.body.username = validator.blacklist(req.body.username, " ");
-    if (!validator.isLength(req.body.username, { min: 5, max: 20 })) {
-      return res.status(400).json({ error: 'Username must be between 5 and 20 characters long' });
+    const minUserNameLength = 5;
+    const maxUserNameLength = 20;
+    if (!validator.isLength(req.body.username, { min: minUserNameLength, max: maxUserNameLength })) {
+      return res.status(400).json({ error: `Username must be between ${minUserNameLength} and ${maxUserNameLength} characters long` });
     }
   }
 
@@ -14,8 +16,9 @@ function registerSanitizeMiddleware(req, res, next) {
   if (req.body.password) {
     req.body.password = validator.trim(req.body.password);
     req.body.password = validator.escape(req.body.password);
-    if (!validator.isLength(req.body.password, { min: 8 })) {
-      return res.status(400).json({ error: 'Password must be at least 5 characters long' });
+    const minPasswordLength = 5;
+    if (!validator.isLength(req.body.password, { min: minPasswordLength })) {
+      return res.status(400).json({ error: `Password must be at least ${minPasswordLength} characters long` });
     }
   }
 

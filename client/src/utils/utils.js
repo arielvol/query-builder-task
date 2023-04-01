@@ -1,8 +1,6 @@
-const deepClone = function (obj) {
+export const deepCopy = function (obj) {
   return JSON.parse(JSON.stringify(obj));
 };
-
-export default deepClone;
 
 export const createErrorMessage = function (error) {
   let msg = "";

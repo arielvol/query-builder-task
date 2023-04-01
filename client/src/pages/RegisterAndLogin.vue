@@ -25,7 +25,7 @@ import { useRouter } from 'vue-router';
 import jwtDecode from 'jwt-decode'
 import toastr from 'toastr';
 import 'toastr/toastr.scss';
-import { createErrorMessage } from '../utilities';
+import { createErrorMessage } from '../utils/utils';
 
 const router = useRouter();
 const loggedIn = ref(false)
@@ -71,6 +71,7 @@ async function OnRegisterClicked() {
     try {
         if (loginData.value.username && loginData.value.password) {
             await LoginService.register(loginData.value.username, loginData.value.password)
+            toastr.success(`User ${loginData.value.username} was successfully registered`);
             loginData.value.username = ''
             loginData.value.password = ''
             userMessage.value = 'Registered successfully! Please login now.'

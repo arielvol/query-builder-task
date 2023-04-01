@@ -10,19 +10,19 @@
             </div>
             <div>
                 <component v-for="(item, index) in items" :index="index" :key="item.id" :is="getComponentType(item.type)"
-                    :data="item" :column-list="columnList" :selected-table="selectedTable" :id="item.id" @updated="onUpdated"
-                    @removed="onRemoved" :depth="depth + 1" class="q-mt-md q-mb-md" />
+                    :data="item" :column-list="columnList" :selected-table="selectedTable" :id="item.id"
+                    @updated="onUpdated" @removed="onRemoved" :depth="depth + 1" class="q-mt-md q-mb-md" />
             </div>
         </q-card-section>
     </q-card>
 </template>
 
 <script setup>
-import { ref, onMounted, toRaw } from "vue";
+import { ref, onMounted, toRaw} from "vue";
 import QueryRule from "./QueryRule.vue";
 import QueryGroup from "./QueryGroup.vue";
 import { v4 as uuid } from "uuid";
-import deepCopy from "../utilities.js"
+import { deepCopy } from "../utils/utils"
 
 let items = ref([]);
 
@@ -32,7 +32,7 @@ let groupData = {
     items: [],
 };
 
-const emit = defineEmits(['updated', 'query-updated', 'removed']);
+const emit = defineEmits(['updated', 'removed']);
 
 const props = defineProps({
     depth: {
@@ -70,6 +70,7 @@ onMounted(() => {
         items.value = deepCopy(toRaw(props.data.items));
         items.value.forEach(item => item.isQueryLoad = true);
     }
+
 })
 
 function getComponentType(type) {

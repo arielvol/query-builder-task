@@ -8,8 +8,8 @@
 </template>
 
 <script setup>
-
 import { ref, onMounted } from "vue";
+import {numberOperatorOptions} from "../../common/constants"
 
 let selectedNumberOperator = ref("");
 let selectedNumberValue = ref("");
@@ -38,32 +38,6 @@ let ruleNumberData = {
 
 const emit = defineEmits(['rule-updated'])
 
-const numberOperatorOptions = {
-    eq: {
-        label: "=",
-        value: "eq"
-    },
-    neq: {
-        label: "<>",
-        value: "neq"
-    },
-    lt: {
-        label: "<",
-        value: "lt"
-    },
-    lte: {
-        label: "<=",
-        value: "lte"
-    },
-    gt: {
-        label: ">",
-        value: "gt"
-    },
-    gte: {
-        label: ">=",
-        value: "gte"
-    },
-}
 
 const numberOptions = Object.values(numberOperatorOptions);
 
