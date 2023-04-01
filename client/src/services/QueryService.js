@@ -52,4 +52,13 @@ export default {
     return apiClient.delete(`/queries/${userId}/${queryId}`);
 
   },
+
+  exportQuery(queryId) {
+    return apiClient.get(`/queries/export/${queryId}`);
+  },
+
+  importQuery(query) {
+    const userId = localStorage.getItem("userId") || "";
+    return apiClient.post(`/queries/import/${userId}`, query);
+  },
 };

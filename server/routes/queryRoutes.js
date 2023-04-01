@@ -5,7 +5,7 @@ const sequelize = require("../config/database");
 const { buildQuery } = require('../utils/utils');
 const authMiddleware = require('../middleware/authMiddleware');
 const sanitizeMiddleware = require('../middleware/sanitizeMiddleware');
-
+const User = require("../models/User");
 
 router.post("/run", [authMiddleware],  async (req, res) => {
   const { query } = req.body;
@@ -75,6 +75,44 @@ router.delete("/:userId/:id", [authMiddleware, sanitizeMiddleware], async (req, 
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+router.get('/export/:id', authMiddleware, async (req, res) => {
+  try {
+    const queryId = req.params.id;
+    const response = await Query.findOne({ where: { id: queryId } });
+    const {id, userId, ...query} = response.dataValues;
+    if (!query) {
+      return res.status(404).json({ message: 'Query not found' });
+    }
+
+    res.status(200).json(query);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/import/:userId', authMiddleware, async (req, res) => {
+  try {
+    const { name, body } = req.body;
+    const userId = req.params.userId
+    if (!name || !body || !userId) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const user = await User.findOne({ where: { id: userId } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const newQuery = await Query.create({ name, body, userId });
+
+    res.status(201).json(newQuery);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

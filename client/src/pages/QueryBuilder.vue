@@ -7,6 +7,8 @@
             <q-select outlined v-model="selectedQuery" :options="queries" option-label="name" label="Queries:"
                 class="q-mb-md" :disable="queries.length === 0" @update:model-value="onSelectedQueryUpdated" />
             <div class="flex">
+                <q-btn outline color="primary" label="Import Query" class="q-ml-md" @click="onImportQueryClicked" />
+                <q-btn outline color="primary" label="Export Query" class="q-ml-md" @click="onExportQueryClicked" />
                 <q-btn outline color="primary" label="Load Query" class="q-ml-md" @click="onLoadQueryClicked" />
                 <q-btn outline color="primary" label="Delete Query" class="q-ml-md" @click="onDeleteQueryClicked" />
                 <q-btn outline color="primary" label="Create Query" class="q-ml-md" @click="onCreateQueryClicked" />
@@ -22,7 +24,7 @@
 
                     <q-card-actions align="right">
                         <q-btn label="No" color="red" @click="isShowDeleteModal = false" />
-                        <q-btn label="Yes" color="green" @click="onYesClicked" />
+                        <q-btn label="Yes" color="green" @click="onDeleteYesClicked" />
                     </q-card-actions>
                 </q-card>
             </q-dialog>
@@ -43,7 +45,7 @@
                     <span><strong>Found {{ queryExecutionResultsNumber }} Results:</strong></span>
                     <q-input class="query-results" v-model="queryExecutionResultJson" type="textarea" />
                     <div class="pin-to-right q-mt-md">
-                        <q-btn outline color="secondary" label="Export to Json" @click="exportWasClicked" />
+                        <q-btn outline color="secondary" label="Export to Json" @click="onExportToJSONWasClicked" />
                     </div>
                 </div>
             </div>
@@ -54,7 +56,7 @@
 
 
 <script setup>
-import { ref, onMounted, watch, toRaw } from "vue";
+import { ref, onMounted, watch, toRaw, h } from "vue";
 import QueryService from "../services/QueryService"
 import QueryGroup from "../components/QueryGroup.vue"
 import deepCopy from "../utilities.js"
@@ -62,7 +64,9 @@ import { useRouter } from 'vue-router';
 import toastr from 'toastr';
 import 'toastr/toastr.scss';
 import { createErrorMessage } from '../utilities';
+import useQuasar from 'quasar/src/composables/use-quasar.js';
 
+const $q = useQuasar()
 const router = useRouter();
 
 let groupData = ref(null);
@@ -144,16 +148,30 @@ function onUpdated(groupData) {
     query.data = groupData;
 }
 
-function onLoadQueryClicked() {
+async function onLoadQueryClicked() {
     if (selectedQuery.value) {
         clearQueryData();
         loadSelectedQuery();
+    } else {
+        await showModal(
+            "No Query Selected",
+            `Please select a query in order to load it.`,
+            "Ok",
+            "Cancel"
+        );
     }
 }
 
-function onDeleteQueryClicked() {
+async function onDeleteQueryClicked() {
     if (selectedQuery.value) {
         isShowDeleteModal.value = true;
+    } else {
+        await showModal(
+            "No Query Selected",
+            `Please select a query in order to delete it.`,
+            "Ok",
+            "Cancel"
+        );
     }
 }
 
@@ -178,6 +196,33 @@ function onSaveQueryClicked() {
     queryExecutionResultsNumber.value = 0;
 }
 
+async function onExportQueryClicked() {
+    if (selectedQuery.value) {
+        const response = await QueryService.exportQuery(selectedQuery.value.id);
+        const exportedQuery = response.data;
+        console.log("Exported query:", exportedQuery);
+
+        // Save the JSON as a file
+        const fileName = `${selectedQuery.value.name}.json`;
+        const jsonString = JSON.stringify(exportedQuery, null, 2);
+        const file = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(file);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+        toastr.success("Query was exported successfully.");
+    } else {
+        await showModal(
+            "No Query Selected",
+            `Please select a query in order to export it.`,
+            "Ok",
+            "Cancel"
+        );
+    }
+}
 
 function mapDataType(dataType) {
     if (dataType.startsWith("character")) {
@@ -212,6 +257,7 @@ async function updateSelectedQuery() {
         if (foundQuery) {
             foundQuery = { ...updatedQuery }
         }
+        toastr.success("Query was updated successfully.");
     } catch (error) {
         const message = createErrorMessage(err);
         toastr.error(message, "Error while trying to save the updated query");
@@ -227,18 +273,20 @@ async function createNewQuery() {
 
         const response = await QueryService.createQuery(newQueryObj);
         queries.value.push(response.data);
+        toastr.success("A new Query was created successfully.");
     } catch (err) {
         const message = createErrorMessage(err);
         toastr.error(message, "Error while trying to save the new query");
     }
 }
 
-async function onYesClicked() {
+async function onDeleteYesClicked() {
     try {
         isShowDeleteModal.value = false;
         await QueryService.deleteQuery(selectedQuery.value.id);
         queries.value = queries.value.filter(query => query.id !== selectedQuery.value.id);
         selectedQuery.value = null;
+        toastr.success("Query was deleted successfully.");
     } catch (err) {
         const message = createErrorMessage(err);
         toastr.error(message, "Error while trying to delete selected query");
@@ -266,25 +314,100 @@ function onLogoutClicked() {
     router.push("/");
 }
 
-function exportWasClicked() {
-    const data = JSON.stringify(queryExecutionResultJson.value, null, 2);
-    const file = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(file);
-    const link = document.createElement('a');
-    link.href = url;
-    let filename;
-    if (queryName.value) {
-        filename = `${queryName.value} Results.json`;
-    } else {
-        filename = "query_results.json";
+function onExportToJSONWasClicked() {
+    try {
+        const data = JSON.stringify(queryExecutionResultJson.value, null, 2);
+        const file = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        let filename;
+        if (queryName.value) {
+            filename = `${queryName.value} Results.json`;
+        } else {
+            filename = "query_results.json";
+        }
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toastr.success("Query results were exported successfully.");
+    } catch (error) {
+        const message = createErrorMessage(err);
+        toastr.error(message, "Error while trying to export a query.");
     }
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
 }
 
+async function onImportQueryClicked() {
+    // Create a file input element
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "application/json";
+
+    // Listen for the file input change event
+    fileInput.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const fileReader = new FileReader();
+        fileReader.readAsText(file);
+
+        fileReader.onload = async () => {
+            try {
+                const queryToImport = JSON.parse(fileReader.result);
+
+                // Check if a query with the same name exists for the user
+                const existingQuery = queries.value.find(
+                    (query) => query.name === queryToImport.name
+                );
+
+                if (existingQuery) {
+                    const shouldImport = await showModal(
+                        "Query Name Already Exists",
+                        `A query with the name "${queryToImport.name}" already exists. Are you sure you want to import it with the same name?`
+                    );
+                    if (shouldImport) {
+                        queryToImport.id = existingQuery.id;
+                    } else {
+                        return;
+                    }
+                }
+                const response = await QueryService.importQuery(queryToImport);
+                const importedQuery = response.data;
+                toastr.success("Query was imported successfully.");
+
+                // Refresh the queries list
+                const queriesResponse = await QueryService.getQueries();
+                queries.value = queriesResponse.data;
+            } catch (error) {
+                const message = createErrorMessage(err);
+                toastr.error(message, "Error while trying to import a query.");
+            }
+        };
+    });
+
+    fileInput.click();
+}
+
+function showModal(title, message, okLabel = "Yes", cancelLabel = "No") {
+    return new Promise((resolve, reject) => {
+        $q.dialog({
+            title,
+            message,
+            ok: {
+                label: okLabel,
+            },
+            cancel: {
+                label: cancelLabel,
+            },
+        }).onOk(() => {
+            resolve(true)
+        }).onCancel(() => {
+            resolve(false)
+        })
+    });
+}
 </script>
 
 
