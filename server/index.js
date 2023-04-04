@@ -6,8 +6,10 @@ const { populateEmployeeTable } = require('./utils/utils');
 const Employees = require('./models/Employees');
 const cors = require("cors");
 
+app.use(cors({ credentials: true, origin: process.env.CLIENT_HOST_URL }));
+
 //TODO: In production mode the server URL should be in an environment variable.
-app.use(cors({ credentials: true, origin: 'http://localhost:9000' }));
+//app.use(cors({ credentials: true, origin: 'http://localhost:9000' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -16,9 +18,9 @@ const userRoutes = require('./routes/queryRoutes');
 const tablesRoutes = require('./routes/tablesRoutes');
 const loginRoutes = require('./routes/loginRoutes');
 
-app.use('/api/queries', userRoutes);
-app.use('/api/tables', tablesRoutes);
-app.use('/api', loginRoutes);
+app.use('/queries', userRoutes);
+app.use('/tables', tablesRoutes);
+app.use('', loginRoutes);
 
 const port = process.env.PORT || 5005;
 sequelize.sync().then( async () => {

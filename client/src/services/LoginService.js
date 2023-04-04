@@ -1,20 +1,11 @@
-import axios from 'axios'
-
-const apiClient = axios.create({
-  baseURL: 'http://localhost:5005/api', // TODO: for local testing mode
-  withCredentials: false,
-  headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json'
-  }
-})
+import { registerApiClient } from "src/common/axios"
 
 export default {
   register(username, password) {
-    return apiClient.post('/register', {username, password})
+    return registerApiClient.post('/register', {username, password})
   },
 
   login(username, password) {
-    return apiClient.post('/login', {username, password})
+    return registerApiClient.post('/login', {username, password})
   },
 }

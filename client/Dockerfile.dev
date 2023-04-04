@@ -1,0 +1,23 @@
+# Specify the base image
+FROM node:16
+
+# Create and set the working directory
+WORKDIR '/app'
+
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+RUN npm install -g @quasar/cli && \
+    npm install -g @vue/cli && \
+    npm install -g @vue/cli-init
+
+# Copy the rest of the application code to the working directory
+COPY . .
+
+# Expose the port that the application will run on
+EXPOSE 9000 8080
+
+# Start the application
+CMD ["npm", "run", "dev"]

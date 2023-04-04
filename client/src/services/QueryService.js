@@ -1,40 +1,30 @@
-import axios from "axios";
-
-const apiClient = axios.create({
-  baseURL: "http://localhost:5005/api", // TODO: for local testing mode
-  withCredentials: true,
-  headers: {
-    Authorization: `${localStorage.getItem('token')}`,
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  },
-});
+import { queryApiClient } from "src/common/axios";
 
 
 export default {
   getAllTablesNames() {
-    return apiClient.get("/tables");
+    return queryApiClient.get("/tables");
   },
   getColumnNames(tableName) {
-    return apiClient.post("/tables/columns", { tableName });
+    return queryApiClient.post("/tables/columns", { tableName });
   },
 
   getColumnData(tableName, columnName) {
-    return apiClient.post("/tables/columns/data", { tableName, columnName });
+    return queryApiClient.post("/tables/columns/data", { tableName, columnName });
   },
 
   getQueries() {
     const userId = localStorage.getItem("userId") || "";
-    return apiClient.get(`/queries/${userId}`);
+    return queryApiClient.get(`/queries/${userId}`);
   },
 
   executeQuery(query) {
-    return apiClient.post("/queries/run", { query });
+    return queryApiClient.post("/queries/run", { query });
   },
 
   createQuery(query) {
     const userId = localStorage.getItem("userId") || "";
-    return apiClient.post(`/queries/${userId}`, {
+    return queryApiClient.post(`/queries/${userId}`, {
       name: query.name,
       body: query.body,
     });
@@ -44,21 +34,21 @@ export default {
     const userId = localStorage.getItem("userId") || "";
     const { id, ...rest } = query;
     rest.userId = userId;
-    return apiClient.put(`/queries/${userId}/${id}`, rest);
+    return queryApiClient.put(`/queries/${userId}/${id}`, rest);
   },
 
   deleteQuery(queryId) {
     const userId = localStorage.getItem("userId") || "";
-    return apiClient.delete(`/queries/${userId}/${queryId}`);
+    return queryApiClient.delete(`/queries/${userId}/${queryId}`);
 
   },
 
   exportQuery(queryId) {
-    return apiClient.get(`/queries/export/${queryId}`);
+    return queryApiClient.get(`/queries/export/${queryId}`);
   },
 
   importQuery(query) {
     const userId = localStorage.getItem("userId") || "";
-    return apiClient.post(`/queries/import/${userId}`, query);
+    return queryApiClient.post(`/queries/import/${userId}`, query);
   },
 };
