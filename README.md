@@ -5,6 +5,19 @@ Query Builder Instructions:
 
 You will need to have Postgres installed on you local machine.
 
+Or
+
+if you are using the docker-compose then you just need to have docker installed on your local machine.
+
+
+# Run via docker:
+Just go to the main folder and run:
+
+```bash
+docker-compose up
+```
+
+# Run on local machine:
 
 ## Install the dependencies:
 

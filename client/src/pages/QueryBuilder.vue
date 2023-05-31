@@ -106,30 +106,6 @@ watch(selectedTableName, async () => {
     }
 })
 
-// watch(selectedTableName, async () => {
-//     if (selectedTableName.value) {
-//         try {
-//             componentKey.value += 1
-
-//             if (isLoadMode) {
-//                 const response = await QueryService.getColumnNames(selectedTableName.value);
-//                 columnsList.value = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
-//                 isLoadMode = false;
-//             } else {
-//                 groupData.value = null;
-//                 query.data = null;
-//                 const response = await QueryService.getColumnNames(selectedTableName.value);
-//                 columnsList.value = response.data.map(item => ({ name: item.column_name, dataType: mapDataType(item.data_type) }));
-//             }
-//             query.tableName = selectedTableName.value;
-
-//         } catch (err) {
-//             const message = createErrorMessage(err);
-//             toastr.error(message, "Error getting columns list");
-//         }
-//     }
-// })
-
 watch(selectedQuery, () => {
     if (selectedQuery.value) {
         queryName.value = selectedQuery.value.queryName;
